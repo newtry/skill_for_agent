@@ -1,0 +1,1 @@
+这是一个用于一键配置qmd到openclaw的skill
