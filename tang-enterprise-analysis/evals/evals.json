@@ -1,0 +1,71 @@
+{
+  "skill_name": "tang-enterprise-analysis",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "帮我分析贵州茅台这家公司，用唐朝投资方法分析它的投资价值",
+      "expected_output": "应形成一篇完整的投资分析文章：开头有核心投资判断，正文包含唐朝三问验证、ROE分析、商业模式分析、利润质量分析、资产质量分析、护城河分析、核心管理层与资本配置分析、估值计算、风险反驳和投资建议；数据必须服务于结论，而不是简单罗列。",
+      "assertions": [
+        {"name": "contains_tang_three_questions", "description": "输出包含唐朝三问（赚钱吗、真钱吗、可持续吗）"},
+        {"name": "contains_roe_analysis", "description": "输出包含ROE分析"},
+        {"name": "contains_asset_quality_analysis", "description": "输出包含核心资产与资产质量分析，识别真正带来盈利的核心资产，并解释这些资产如何转化为收入、利润和自由现金流"},
+        {"name": "assesses_future_earning_assets", "description": "输出判断核心资产的产出效率、可持续性和未来盈利能力，而不只是检查坏账或减值风险"},
+        {"name": "contains_management_analysis", "description": "输出包含核心管理层与资本配置分析，覆盖关键人物、历史经营记录、股东回报、并购投资、激励一致性和治理风险"},
+        {"name": "uses_management_evidence", "description": "管理层评价必须有事实或数据支撑，不得只写管理层优秀、诚信等空泛判断"},
+        {"name": "contains_valuation", "description": "输出包含估值计算"},
+        {"name": "contains_investment_advice", "description": "输出包含投资建议"},
+        {"name": "has_executive_thesis", "description": "开头包含明确的核心投资判断，而不是直接罗列数据"},
+        {"name": "uses_evidence_reasoning_chain", "description": "关键数据后有商业含义解释和投资含义判断"},
+        {"name": "limits_table_dumping", "description": "表格只是辅助，正文以连续分析段落为主"},
+        {"name": "has_risk_counterargument", "description": "包含反方风险、财报疑点或估值假设脆弱点"},
+        {"name": "has_final_decision_conditions", "description": "结尾给出买入、持有、卖出或回避的条件"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "腾讯控股的利润质量如何？请用唐朝方法分析",
+      "expected_output": "应围绕“利润是否是真金白银”形成连续分析，包含经营现金流/净利润、销售现金/营业收入、应收账款、扣非净利润、资产质量等指标，并解释这些指标对利润真实性、资产真实性和可持续性的含义。",
+      "assertions": [
+        {"name": "contains_cash_flow_analysis", "description": "输出包含经营现金流分析"},
+        {"name": "contains_profit_quality_metrics", "description": "输出包含利润质量核心指标"},
+        {"name": "contains_asset_quality_analysis", "description": "输出包含资产质量分析，识别影响利润真实性和未来盈利能力的核心资产及关键资产负债表科目"},
+        {"name": "contains_quality_rating", "description": "输出包含利润质量评级"},
+        {"name": "explains_metric_meaning", "description": "不只列指标，还解释指标说明的商业含义"},
+        {"name": "has_profit_quality_conclusion", "description": "给出利润质量的明确结论和需要继续核查的风险点"}
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "用DCF方法给招商银行估值，计算买入价和卖出价",
+      "expected_output": "应包含自由现金流计算、折现率选择、增长率假设、内在价值计算、买入价（50%安全边际）、卖出价（150%），并解释估值假设的合理性、脆弱点和适用前提。",
+      "assertions": [
+        {"name": "contains_dcf_calculation", "description": "输出包含DCF估值计算过程"},
+        {"name": "contains_intrinsic_value", "description": "输出包含内在价值"},
+        {"name": "contains_buy_sell_price", "description": "输出包含买入价和卖出价"},
+        {"name": "uses_correct_company_type", "description": "使用正确的企业类型参数（周期性企业）"},
+        {"name": "explains_valuation_assumptions", "description": "解释增长率、折现率、永续增长率等假设为什么合理"},
+        {"name": "identifies_fragile_assumptions", "description": "指出估值结论最依赖、最脆弱的关键假设"}
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "什么是唐朝三问？如何用唐朝三问分析企业？",
+      "expected_output": "应详细解释唐朝三问的三个核心问题及其检验指标",
+      "assertions": [
+        {"name": "explains_three_questions", "description": "输出解释了唐朝三问的三个问题"},
+        {"name": "explains_key_indicators", "description": "输出解释了每个问题的关键指标"},
+        {"name": "provides_examples", "description": "输出提供了实际应用示例"}
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "帮我筛选ROE大于20%的公司应该关注哪些指标？",
+      "expected_output": "应解释ROE筛选标准、ROE来源分析（杜邦分析）、以及ROE筛选后的进一步分析步骤",
+      "assertions": [
+        {"name": "explains_roe_standards", "description": "输出解释了ROE筛选标准"},
+        {"name": "explains_roe_source", "description": "输出解释了ROE来源分析"},
+        {"name": "explains_next_steps", "description": "输出解释了筛选后的分析步骤"}
+      ]
+    }
+  ]
+}
