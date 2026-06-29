@@ -1,0 +1,4 @@
+interface:
+  display_name: "DDD Strategy Design"
+  short_description: "Design technical plans with DDD boundaries"
+  default_prompt: "Use $ddd-strategy-design to analyze this business requirement and produce a DDD-based technical solution."
