@@ -480,13 +480,13 @@ def comprehensive_profit_quality_analysis(company_name,
         "地雷扫描": red_flags,
         "综合评分": final_score,
         "综合评级": final_rating,
-        "唐朝投资建议": generate_tang_advice(authenticity, sustainability, red_flags)
+        "投资建议": generate_investment_advice(authenticity, sustainability, red_flags)
     }
 
 
-def generate_tang_advice(authenticity, sustainability, red_flags):
+def generate_investment_advice(authenticity, sustainability, red_flags):
     """
-    生成唐朝风格的投资建议
+    生成投资建议
     """
     advice = []
     
@@ -587,8 +587,8 @@ def print_profit_quality_report(analysis_result):
             print(f"  🟢 {flag}")
     
     # 投资建议
-    print(f"\n--- 唐朝风格投资建议 ---")
-    for advice in analysis_result['唐朝投资建议']:
+    print(f"\n--- 投资建议 ---")
+    for advice in analysis_result['投资建议']:
         print(f"  💡 {advice}")
     
     print("\n" + "="*70 + "\n")

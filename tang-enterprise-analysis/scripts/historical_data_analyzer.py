@@ -539,7 +539,7 @@ class HistoricalDataAnalyzer:
         report_lines.append("")
         
         report_lines.extend([
-            "## 三、唐朝三问验证（多年视角）",
+            "## 三、三项核心问题验证（多年视角）",
             ""
         ])
         
@@ -746,7 +746,7 @@ def demo():
     report = analyzer.generate_comparison_report()
     print(report)
     
-    analyzer.export_data("./maotai_historical_data.json")
+    analyzer.export_data("./tmp/maotai_historical_data.json")
 
 
 if __name__ == "__main__":

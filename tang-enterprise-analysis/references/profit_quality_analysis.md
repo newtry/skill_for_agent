@@ -216,4 +216,4 @@ result = comprehensive_profit_quality_analysis(
 - 利润可持续性评分和评级
 - 地雷扫描结果
 - 综合评分和评级
-- 唐朝风格投资建议
+- 投资建议
