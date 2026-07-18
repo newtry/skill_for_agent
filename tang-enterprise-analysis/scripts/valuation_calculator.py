@@ -1,145 +1,129 @@
 #!/usr/bin/env python3
-"""
-自由现金流折现计算器
-基于唐朝投资思想，实现企业内在价值的自动化计算
-支持稳定成长型、周期性、成长型企业的估值
+"""估值计算工具。
+
+普通企业使用现金流折现；银行可使用剩余收益或股利折现。
+所有金额与股本必须使用兼容量纲。
 """
 
 import math
 
 
+def _number(name, value, *, minimum=None, maximum=None):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError(f"{name}必须是数字")
+    if not math.isfinite(value):
+        raise ValueError(f"{name}必须是有限数值")
+    if minimum is not None and value < minimum:
+        raise ValueError(f"{name}不能小于{minimum}")
+    if maximum is not None and value > maximum:
+        raise ValueError(f"{name}不能大于{maximum}")
+    return float(value)
+
+
+def _years(value):
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise ValueError("预测期年限必须是正整数")
+    return value
+
+
+def _growth_rate(name, value):
+    value = _number(name, value)
+    if value <= -1:
+        raise ValueError(f"{name}必须大于-100%")
+    return value
+
+
+def _discount_pair(discount_rate, perpetual_growth_rate):
+    discount_rate = _number("折现率", discount_rate)
+    perpetual_growth_rate = _growth_rate("永续增长率", perpetual_growth_rate)
+    if discount_rate <= perpetual_growth_rate:
+        raise ValueError("折现率必须高于永续增长率")
+    return discount_rate, perpetual_growth_rate
+
+
 def calculate_fcf(operating_cash_flow, capex=0):
+    """计算简化自由现金流：经营现金流减资本开支。
+
+    该近似只适用于非金融企业，且需要另外判断营运资金和增长性资本开支。
     """
-    计算自由现金流（FCF）
-    
-    自由现金流 = 经营活动现金流量净额 - 资本开支
-    
-    注意：分红是对股东的回报，不应从自由现金流中扣除。
-    分红是自由现金流的使用方式之一，而不是经营的必要支出。
-    
-    Args:
-        operating_cash_flow (float): 经营活动现金流量净额
-        capex (float): 资本开支（购建固定资产、无形资产支付的现金）
-    
-    Returns:
-        float: 自由现金流
-    """
+    operating_cash_flow = _number("经营现金流", operating_cash_flow)
+    capex = _number("资本开支", capex, minimum=0)
     return operating_cash_flow - capex
 
 
-def calculate_intrinsic_value(fcf, growth_rate, years, perpetual_growth_rate, discount_rate):
-    """
-    计算企业内在价值
-    
-    Args:
-        fcf (float): 基准年自由现金流
-        growth_rate (float): 预测期增长率
-        years (int): 预测期年限
-        perpetual_growth_rate (float): 永续增长率
-        discount_rate (float): 折现率
-    
-    Returns:
-        float: 企业内在价值
-    """
-    # 计算预测期现值
-    forecast_value = 0
-    for i in range(1, years + 1):
-        # 第i年的自由现金流
-        year_fcf = fcf * (1 + growth_rate) ** i
-        # 折现到基准年
-        present_value = year_fcf / (1 + discount_rate) ** i
-        forecast_value += present_value
-    
-    # 计算永续期现值
-    # 预测期最后一年的自由现金流
+def calculate_intrinsic_value(
+    fcf, growth_rate, years, perpetual_growth_rate, discount_rate
+):
+    """使用恒定预测期增长率计算普通企业现金流现值。"""
+    fcf = _number("基准年自由现金流", fcf)
+    growth_rate = _growth_rate("预测期增长率", growth_rate)
+    years = _years(years)
+    discount_rate, perpetual_growth_rate = _discount_pair(
+        discount_rate, perpetual_growth_rate
+    )
+
+    forecast_value = sum(
+        fcf * (1 + growth_rate) ** year / (1 + discount_rate) ** year
+        for year in range(1, years + 1)
+    )
     final_year_fcf = fcf * (1 + growth_rate) ** years
-    # 永续期第一年的自由现金流
-    perpetual_fcf = final_year_fcf * (1 + perpetual_growth_rate)
-    # 永续期价值（使用戈登增长模型）
-    perpetual_value = perpetual_fcf / (discount_rate - perpetual_growth_rate)
-    # 折现到基准年
-    perpetual_present_value = perpetual_value / (1 + discount_rate) ** years
-    
-    # 内在价值 = 预测期现值 + 永续期现值
-    intrinsic_value = forecast_value + perpetual_present_value
-    
-    return intrinsic_value
+    terminal_value = (
+        final_year_fcf
+        * (1 + perpetual_growth_rate)
+        / (discount_rate - perpetual_growth_rate)
+    )
+    return forecast_value + terminal_value / (1 + discount_rate) ** years
 
 
 def calculate_share_intrinsic_value(intrinsic_value, shares_outstanding):
-    """
-    计算每股内在价值
-    
-    Args:
-        intrinsic_value (float): 企业内在价值
-        shares_outstanding (float): 总股本
-    
-    Returns:
-        float: 每股内在价值
-    """
+    """计算每股内在价值。"""
+    intrinsic_value = _number("股权价值", intrinsic_value)
+    shares_outstanding = _number("总股本", shares_outstanding, minimum=0)
+    if shares_outstanding == 0:
+        raise ValueError("总股本必须大于0")
     return intrinsic_value / shares_outstanding
 
 
 def calculate_buy_price(share_intrinsic_value, margin=0.5):
-    """
-    计算买入价格（内在价值的50%）
-    
-    Args:
-        share_intrinsic_value (float): 每股内在价值
-        margin (float): 安全边际比例（默认0.5，即50%）
-    
-    Returns:
-        float: 买入价格
-    """
+    """按显式安全边际乘数计算价格参考，不代表通用买入规则。"""
+    share_intrinsic_value = _number("每股内在价值", share_intrinsic_value)
+    margin = _number("安全边际乘数", margin, minimum=0, maximum=1)
+    if margin == 0:
+        raise ValueError("安全边际乘数必须大于0")
     return share_intrinsic_value * margin
 
 
 def calculate_sell_price(share_intrinsic_value, margin=1.5):
-    """
-    计算卖出价格（内在价值的150%）
-    
-    Args:
-        share_intrinsic_value (float): 每股内在价值
-        margin (float): 高估卖出比例（默认1.5，即150%）
-    
-    Returns:
-        float: 卖出价格
-    """
+    """按显式高估乘数计算价格参考，不代表自动卖出指令。"""
+    share_intrinsic_value = _number("每股内在价值", share_intrinsic_value)
+    margin = _number("高估乘数", margin, minimum=0)
+    if margin == 0:
+        raise ValueError("高估乘数必须大于0")
     return share_intrinsic_value * margin
 
 
-def valuate_stable_growth_company(operating_cash_flow, capex=0, years=10, growth_rate=0.1, 
-                               perpetual_growth_rate=0.03, discount_rate=0.1, shares_outstanding=1,
-                               buy_margin=0.5, sell_margin=1.5):
-    """
-    估值稳定成长型企业（如茅台）
-    
-    Args:
-        operating_cash_flow (float): 经营活动现金流量净额
-        capex (float): 资本开支（默认0）
-        years (int): 预测期年限（默认10）
-        growth_rate (float): 预测期增长率（默认0.1，10%）
-        perpetual_growth_rate (float): 永续增长率（默认0.03，3%）
-        discount_rate (float): 折现率（默认0.1，10%）
-        shares_outstanding (float): 总股本（默认1）
-        buy_margin (float): 买入安全边际（默认0.5，即50%）
-        sell_margin (float): 卖出高估比例（默认1.5，即150%）
-    
-    Returns:
-        dict: 估值结果
-    """
+def _valuate_company(
+    enterprise_type,
+    operating_cash_flow,
+    capex,
+    years,
+    growth_rate,
+    perpetual_growth_rate,
+    discount_rate,
+    shares_outstanding,
+    buy_margin,
+    sell_margin,
+):
     fcf = calculate_fcf(operating_cash_flow, capex)
-    
-    intrinsic_value = calculate_intrinsic_value(fcf, growth_rate, years, 
-                                             perpetual_growth_rate, discount_rate)
-    
-    share_intrinsic_value = calculate_share_intrinsic_value(intrinsic_value, shares_outstanding)
-    
-    buy_price = calculate_buy_price(share_intrinsic_value, buy_margin)
-    sell_price = calculate_sell_price(share_intrinsic_value, sell_margin)
-    
+    intrinsic_value = calculate_intrinsic_value(
+        fcf, growth_rate, years, perpetual_growth_rate, discount_rate
+    )
+    share_value = calculate_share_intrinsic_value(
+        intrinsic_value, shares_outstanding
+    )
     return {
-        "企业类型": "稳定成长型",
+        "企业类型": enterprise_type,
+        "模型": "简化自由现金流折现",
         "基准年经营现金流": operating_cash_flow,
         "资本开支": capex,
         "基准年自由现金流": fcf,
@@ -149,155 +133,203 @@ def valuate_stable_growth_company(operating_cash_flow, capex=0, years=10, growth
         "折现率": discount_rate,
         "总股本": shares_outstanding,
         "企业内在价值": intrinsic_value,
-        "每股内在价值": share_intrinsic_value,
-        "买入价格": buy_price,
-        "卖出价格": sell_price
+        "每股内在价值": share_value,
+        "安全边际价格参考": calculate_buy_price(share_value, buy_margin),
+        "高估价格参考": calculate_sell_price(share_value, sell_margin),
+        "限制": "不适用于银行、保险和券商；价格参考不是交易指令",
     }
 
 
-def valuate_cyclical_company(operating_cash_flow, capex=0, years=7, growth_rate=0.05, 
-                            perpetual_growth_rate=0.03, discount_rate=0.1, shares_outstanding=1):
+def valuate_stable_growth_company(
+    operating_cash_flow,
+    capex=0,
+    years=10,
+    growth_rate=0.1,
+    perpetual_growth_rate=0.03,
+    discount_rate=0.1,
+    shares_outstanding=1,
+    buy_margin=0.5,
+    sell_margin=1.5,
+):
+    """估值现金流相对稳定的普通非金融企业。"""
+    return _valuate_company(
+        "稳定成长型非金融企业",
+        operating_cash_flow,
+        capex,
+        years,
+        growth_rate,
+        perpetual_growth_rate,
+        discount_rate,
+        shares_outstanding,
+        buy_margin,
+        sell_margin,
+    )
+
+
+def valuate_cyclical_company(
+    operating_cash_flow,
+    capex=0,
+    years=7,
+    growth_rate=0.05,
+    perpetual_growth_rate=0.02,
+    discount_rate=0.12,
+    shares_outstanding=1,
+    buy_margin=0.5,
+    sell_margin=1.5,
+):
+    """估值使用周期中枢现金流的普通周期企业，不适用于金融企业。"""
+    return _valuate_company(
+        "周期型非金融企业",
+        operating_cash_flow,
+        capex,
+        years,
+        growth_rate,
+        perpetual_growth_rate,
+        discount_rate,
+        shares_outstanding,
+        buy_margin,
+        sell_margin,
+    )
+
+
+def valuate_growth_company(
+    operating_cash_flow,
+    capex=0,
+    years=8,
+    growth_rate=0.15,
+    perpetual_growth_rate=0.03,
+    discount_rate=0.12,
+    shares_outstanding=1,
+    buy_margin=0.5,
+    sell_margin=1.5,
+):
+    """估值现金流可预测的成长型普通非金融企业。"""
+    return _valuate_company(
+        "成长型非金融企业",
+        operating_cash_flow,
+        capex,
+        years,
+        growth_rate,
+        perpetual_growth_rate,
+        discount_rate,
+        shares_outstanding,
+        buy_margin,
+        sell_margin,
+    )
+
+
+def valuate_bank_residual_income(
+    book_value,
+    roe,
+    cost_of_equity,
+    years=5,
+    payout_ratio=0.3,
+    terminal_roe=None,
+    terminal_growth_rate=0.03,
+    shares_outstanding=1,
+):
+    """使用简化剩余收益模型估算银行普通股价值。
+
+    book_value为当前普通股净资产。模型假设预测期ROE和分红率恒定；
+    实务中应按年度输入并结合资产质量、信用成本和监管资本复核。
     """
-    估值周期性企业（如银行）
-    
-    Args:
-        operating_cash_flow (float): 经营活动现金流量净额
-        capex (float): 资本开支（默认0）
-        years (int): 预测期年限（默认7）
-        growth_rate (float): 预测期增长率（默认0.05，5%）
-        perpetual_growth_rate (float): 永续增长率（默认0.03，3%）
-        discount_rate (float): 折现率（默认0.1，10%）
-        shares_outstanding (float): 总股本（默认1）
-    
-    Returns:
-        dict: 估值结果
-    """
-    fcf = calculate_fcf(operating_cash_flow, capex)
-    
-    intrinsic_value = calculate_intrinsic_value(fcf, growth_rate, years, 
-                                             perpetual_growth_rate, discount_rate)
-    
-    share_intrinsic_value = calculate_share_intrinsic_value(intrinsic_value, shares_outstanding)
-    
-    buy_price = calculate_buy_price(share_intrinsic_value)
-    sell_price = calculate_sell_price(share_intrinsic_value)
-    
+    book_value = _number("普通股净资产", book_value, minimum=0)
+    if book_value == 0:
+        raise ValueError("普通股净资产必须大于0")
+    roe = _number("预测期ROE", roe)
+    cost_of_equity = _number("股权成本", cost_of_equity, minimum=0)
+    years = _years(years)
+    payout_ratio = _number("分红率", payout_ratio, minimum=0, maximum=1)
+    terminal_roe = roe if terminal_roe is None else _number("终值ROE", terminal_roe)
+    cost_of_equity, terminal_growth_rate = _discount_pair(
+        cost_of_equity, terminal_growth_rate
+    )
+
+    current_book = book_value
+    residual_income_pv = 0.0
+    for year in range(1, years + 1):
+        earnings = current_book * roe
+        residual_income = earnings - current_book * cost_of_equity
+        residual_income_pv += residual_income / (1 + cost_of_equity) ** year
+        current_book += earnings * (1 - payout_ratio)
+
+    next_terminal_book = current_book * (1 + terminal_growth_rate)
+    terminal_residual_income = next_terminal_book * (
+        terminal_roe - cost_of_equity
+    )
+    terminal_value = terminal_residual_income / (
+        cost_of_equity - terminal_growth_rate
+    )
+    equity_value = (
+        book_value
+        + residual_income_pv
+        + terminal_value / (1 + cost_of_equity) ** years
+    )
+    share_value = calculate_share_intrinsic_value(equity_value, shares_outstanding)
     return {
-        "企业类型": "周期性企业",
-        "基准年经营现金流": operating_cash_flow,
-        "资本开支": capex,
-        "基准年自由现金流": fcf,
+        "企业类型": "银行",
+        "模型": "简化剩余收益模型",
+        "当前普通股净资产": book_value,
+        "预测期ROE": roe,
+        "终值ROE": terminal_roe,
+        "股权成本": cost_of_equity,
+        "分红率": payout_ratio,
         "预测期年限": years,
-        "预测期增长率": growth_rate,
-        "永续增长率": perpetual_growth_rate,
-        "折现率": discount_rate,
-        "总股本": shares_outstanding,
-        "企业内在价值": intrinsic_value,
-        "每股内在价值": share_intrinsic_value,
-        "买入价格": buy_price,
-        "卖出价格": sell_price
+        "永续增长率": terminal_growth_rate,
+        "股权价值": equity_value,
+        "每股内在价值": share_value,
+        "限制": "必须结合资产质量、信用成本和监管资本做情景分析",
     }
 
 
-def valuate_growth_company(operating_cash_flow, capex=0, years=8, growth_rate=0.15, 
-                          perpetual_growth_rate=0.04, discount_rate=0.12, shares_outstanding=1):
-    """
-    估值成长型企业（如腾讯、宁德时代）
-    
-    Args:
-        operating_cash_flow (float): 经营活动现金流量净额
-        capex (float): 资本开支（默认0）
-        years (int): 预测期年限（默认8）
-        growth_rate (float): 预测期增长率（默认0.15，15%）
-        perpetual_growth_rate (float): 永续增长率（默认0.04，4%）
-        discount_rate (float): 折现率（默认0.12，12%，风险较高）
-        shares_outstanding (float): 总股本（默认1）
-    
-    Returns:
-        dict: 估值结果
-    """
-    fcf = calculate_fcf(operating_cash_flow, capex)
-    
-    intrinsic_value = calculate_intrinsic_value(fcf, growth_rate, years, 
-                                             perpetual_growth_rate, discount_rate)
-    
-    share_intrinsic_value = calculate_share_intrinsic_value(intrinsic_value, shares_outstanding)
-    
-    buy_price = calculate_buy_price(share_intrinsic_value)
-    sell_price = calculate_sell_price(share_intrinsic_value)
-    
+def calculate_dividend_discount_value(
+    current_dividend,
+    growth_rate,
+    cost_of_equity,
+    shares_outstanding=1,
+):
+    """计算稳定增长股利折现价值，仅适用于可持续分红。"""
+    current_dividend = _number("当前年度股利", current_dividend, minimum=0)
+    cost_of_equity, growth_rate = _discount_pair(cost_of_equity, growth_rate)
+    equity_value = current_dividend * (1 + growth_rate) / (
+        cost_of_equity - growth_rate
+    )
     return {
-        "企业类型": "成长型企业",
-        "基准年经营现金流": operating_cash_flow,
-        "资本开支": capex,
-        "基准年自由现金流": fcf,
-        "预测期年限": years,
-        "预测期增长率": growth_rate,
-        "永续增长率": perpetual_growth_rate,
-        "折现率": discount_rate,
-        "总股本": shares_outstanding,
-        "企业内在价值": intrinsic_value,
-        "每股内在价值": share_intrinsic_value,
-        "买入价格": buy_price,
-        "卖出价格": sell_price
+        "模型": "稳定增长股利折现",
+        "股权价值": equity_value,
+        "每股内在价值": calculate_share_intrinsic_value(
+            equity_value, shares_outstanding
+        ),
+        "限制": "仅适用于分红政策稳定且资本充足的金融企业",
     }
 
 
 def print_valuation_result(result):
-    """
-    打印估值结果
-    
-    Args:
-        result (dict): 估值结果
-    """
+    """打印估值结果。"""
     print("\n===== 估值结果 =====")
     for key, value in result.items():
-        if isinstance(value, float):
-            print(f"{key}: {value:.2f}")
-        else:
-            print(f"{key}: {value}")
+        print(f"{key}: {value:.2f}" if isinstance(value, float) else f"{key}: {value}")
     print("====================\n")
 
 
 if __name__ == "__main__":
-    """
-    示例用法
-    """
-    # 示例1：茅台估值
-    print("示例1：贵州茅台估值")
-    maotai_result = valuate_stable_growth_company(
-        operating_cash_flow=92464000000,  # 924.64亿元
-        capex=4679000000,  # 46.79亿元
-        years=10,
-        growth_rate=0.1,
-        perpetual_growth_rate=0.03,
-        discount_rate=0.1,
-        shares_outstanding=1256000000  # 12.56亿股
+    print("示例1：稳定成长型非金融企业")
+    print_valuation_result(
+        valuate_stable_growth_company(
+            operating_cash_flow=100,
+            capex=10,
+            shares_outstanding=10,
+        )
     )
-    print_valuation_result(maotai_result)
-    
-    # 示例2：腾讯估值
-    print("示例2：腾讯控股估值")
-    tencent_result = valuate_growth_company(
-        operating_cash_flow=200000000000,  # 2000亿元
-        capex=30000000000,  # 300亿元
-        years=8,
-        growth_rate=0.15,
-        perpetual_growth_rate=0.04,
-        discount_rate=0.12,
-        shares_outstanding=9190000000  # 91.9亿股
+
+    print("示例2：银行剩余收益模型")
+    print_valuation_result(
+        valuate_bank_residual_income(
+            book_value=1000,
+            roe=0.13,
+            cost_of_equity=0.10,
+            payout_ratio=0.3,
+            terminal_roe=0.11,
+            shares_outstanding=100,
+        )
     )
-    print_valuation_result(tencent_result)
-    
-    # 示例3：招商银行估值
-    print("示例3：招商银行估值")
-    cmb_result = valuate_cyclical_company(
-        operating_cash_flow=150000000000,  # 1500亿元
-        capex=20000000000,  # 200亿元
-        years=7,
-        growth_rate=0.08,
-        perpetual_growth_rate=0.03,
-        discount_rate=0.1,
-        shares_outstanding=25220000000  # 252.2亿股
-    )
-    print_valuation_result(cmb_result)

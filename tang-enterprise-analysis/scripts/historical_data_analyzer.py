@@ -13,6 +13,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 from enum import Enum
+from pathlib import Path
 import json
 
 
@@ -280,7 +281,10 @@ class HistoricalDataAnalyzer:
     
     def calculate_volatility(self, values: List[float]) -> Optional[float]:
         """
-        计算波动率（标准差/均值）
+        计算序列的总体标准差。
+
+        调用方应传入年度变化率，而不是持续增长的绝对金额；否则正常增长
+        会被误判为波动。
         
         Args:
             values: 数值列表
@@ -292,13 +296,8 @@ class HistoricalDataAnalyzer:
             return None
         
         mean = sum(values) / len(values)
-        if mean == 0:
-            return None
-        
         variance = sum((v - mean) ** 2 for v in values) / len(values)
-        std_dev = variance ** 0.5
-        
-        return std_dev / abs(mean)
+        return variance ** 0.5
     
     def detect_anomalies(self, values: List[Tuple[int, float]], threshold: float = 0.3) -> List[Dict]:
         """
@@ -364,7 +363,7 @@ class HistoricalDataAnalyzer:
         
         cagr = self.calculate_cagr(numeric_values, len(values) - 1)
         
-        volatility = self.calculate_volatility(numeric_values)
+        volatility = self.calculate_volatility(change_rates)
         
         if volatility and volatility > 0.2:
             direction = TrendDirection.VOLATILE
@@ -563,7 +562,11 @@ class HistoricalDataAnalyzer:
             
             report_lines.append(f"- 平均ROE：{avg_roe*100:.2f}% - {roe_eval}")
             report_lines.append(f"- 最低ROE：{min_roe*100:.2f}%")
-            report_lines.append(f"- ROE稳定性：{'稳定' if roe_trend.volatility and roe_trend.volatility < 0.1 else '波动'}")
+            roe_is_stable = (
+                roe_trend.volatility is not None
+                and roe_trend.volatility < 0.1
+            )
+            report_lines.append(f"- ROE稳定性：{'稳定' if roe_is_stable else '波动'}")
         
         report_lines.append("")
         report_lines.append("### 2. 赚的是真钱吗？")
@@ -648,7 +651,9 @@ class HistoricalDataAnalyzer:
             'yearly_data': {str(year): data.to_dict() for year, data in self.yearly_data.items()}
         }
         
-        with open(filepath, 'w', encoding='utf-8') as f:
+        output_path = Path(filepath)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with output_path.open('w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
     
     def import_data(self, filepath: str) -> None:

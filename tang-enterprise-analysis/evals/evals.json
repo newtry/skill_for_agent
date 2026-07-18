@@ -1,73 +1,147 @@
 {
   "skill_name": "tang-enterprise-analysis",
+  "version": 2,
+  "evaluation_notes": "触发评测检查should_trigger；输出评测必须同时检查事实正确性、来源、方法适用性和未知项处理，不能只检查章节是否存在。",
   "evals": [
     {
-      "id": 1,
-      "prompt": "帮我分析贵州茅台这家公司，用唐朝投资方法分析它的投资价值",
-      "expected_output": "应形成一篇完整的投资分析文章：不仅给出投资判断，还能帮助读者理解公司业务。正文应覆盖生意质量、利润真实性、持续盈利能力、ROE分析、商业模式分析、利润质量分析、资产质量分析、护城河分析、核心管理层与资本配置分析、估值计算、风险反驳和投资建议；数据必须服务于结论，而不是简单罗列。除非用户要求解释方法本身，个股报告正文不应暴露方法来源名称。",
+      "id": "trigger_a_share_analysis",
+      "prompt": "分析一下600519是不是一门好生意，当前估值需要什么数据？",
+      "should_trigger": true,
+      "task_mode": "完整分析",
       "assertions": [
-        {"name": "contains_core_three_tests", "description": "输出覆盖生意是否赚钱、利润是否真实、盈利是否可持续三个核心问题"},
-        {"name": "contains_roe_analysis", "description": "输出包含ROE分析"},
-        {"name": "contains_asset_quality_analysis", "description": "输出包含核心资产与资产质量分析，识别真正带来盈利的核心资产，并解释这些资产如何转化为收入、利润和自由现金流"},
-        {"name": "assesses_future_earning_assets", "description": "输出判断核心资产的产出效率、可持续性和未来盈利能力，而不只是检查坏账或减值风险"},
-        {"name": "contains_management_analysis", "description": "输出包含核心管理层与资本配置分析，覆盖关键人物、历史经营记录、股东回报、并购投资、激励一致性和治理风险"},
-        {"name": "uses_management_evidence", "description": "管理层评价必须有事实或数据支撑，不得只写管理层优秀、诚信等空泛判断"},
-        {"name": "explains_business_model_clearly", "description": "输出能让读者看懂公司卖什么、卖给谁、客户为什么付钱、收入怎么形成、关键成本和增长驱动是什么"},
-        {"name": "maps_financials_to_business", "description": "能把收入、利润、现金流、资产和估值变化解释成业务变化，而不只是罗列财务指标"},
-        {"name": "contains_valuation", "description": "输出包含估值计算"},
-        {"name": "contains_investment_advice", "description": "输出包含投资建议"},
-        {"name": "has_executive_thesis", "description": "开头包含明确的核心投资判断，而不是直接罗列数据"},
-        {"name": "uses_evidence_reasoning_chain", "description": "关键数据后有商业含义解释和投资含义判断"},
-        {"name": "limits_table_dumping", "description": "表格只是辅助，正文以连续分析段落为主"},
-        {"name": "has_risk_counterargument", "description": "包含反方风险、财报疑点或估值假设脆弱点"},
-        {"name": "has_final_decision_conditions", "description": "结尾给出买入、持有、卖出或回避的条件"}
+        {"name": "resolves_security", "description": "确认公司、代码、上市地和分析时点"},
+        {"name": "explains_business", "description": "解释产品、客户、收入形成、成本和增长驱动"},
+        {"name": "requests_current_sources", "description": "不把历史案例数字冒充当前数据，说明估值所需来源和截止日期"}
       ]
     },
     {
-      "id": 2,
-      "prompt": "腾讯控股的利润质量如何？请用唐朝方法分析",
-      "expected_output": "应围绕“利润是否是真金白银”形成连续分析，包含经营现金流/净利润、销售现金/营业收入、应收账款、扣非净利润、资产质量等指标，并解释这些指标对利润真实性、资产真实性和可持续性的含义。",
+      "id": "trigger_hk_profit_quality",
+      "prompt": "腾讯控股最近五年的利润质量如何？",
+      "should_trigger": true,
+      "task_mode": "专项分析",
       "assertions": [
-        {"name": "contains_cash_flow_analysis", "description": "输出包含经营现金流分析"},
-        {"name": "contains_profit_quality_metrics", "description": "输出包含利润质量核心指标"},
-        {"name": "contains_asset_quality_analysis", "description": "输出包含资产质量分析，识别影响利润真实性和未来盈利能力的核心资产及关键资产负债表科目"},
-        {"name": "contains_quality_rating", "description": "输出包含利润质量评级"},
-        {"name": "explains_metric_meaning", "description": "不只列指标，还解释指标说明的商业含义"},
-        {"name": "has_profit_quality_conclusion", "description": "给出利润质量的明确结论和需要继续核查的风险点"}
+        {"name": "uses_multi_year_evidence", "description": "使用多年而非单年现金流、利润和资产数据"},
+        {"name": "states_currency_scope", "description": "说明期间、币种和合并口径"},
+        {"name": "maps_financials_to_business", "description": "解释指标背后的业务原因"}
       ]
     },
     {
-      "id": 3,
-      "prompt": "用DCF方法给招商银行估值，计算买入价和卖出价",
-      "expected_output": "应包含自由现金流计算、折现率选择、增长率假设、内在价值计算、买入价（50%安全边际）、卖出价（150%），并解释估值假设的合理性、脆弱点和适用前提。",
+      "id": "bank_valuation_method",
+      "prompt": "用DCF给招商银行估值并告诉我买入价。",
+      "should_trigger": true,
+      "task_mode": "估值",
       "assertions": [
-        {"name": "contains_dcf_calculation", "description": "输出包含DCF估值计算过程"},
-        {"name": "contains_intrinsic_value", "description": "输出包含内在价值"},
-        {"name": "contains_buy_sell_price", "description": "输出包含买入价和卖出价"},
-        {"name": "uses_correct_company_type", "description": "使用正确的企业类型参数（周期性企业）"},
-        {"name": "explains_valuation_assumptions", "description": "解释增长率、折现率、永续增长率等假设为什么合理"},
-        {"name": "identifies_fragile_assumptions", "description": "指出估值结论最依赖、最脆弱的关键假设"}
+        {"name": "rejects_bank_ocf_dcf", "description": "明确说明银行不能使用经营现金流减资本开支的普通企业DCF"},
+        {"name": "uses_financial_model", "description": "改用剩余收益、股利折现或PB-ROE交叉验证"},
+        {"name": "requires_bank_inputs", "description": "要求净资产、正常化ROE、信用成本、资本充足率、分红率和股权成本"},
+        {"name": "avoids_fake_precision", "description": "输入不足时不给伪精确买入价"}
       ]
     },
     {
-      "id": 4,
-      "prompt": "什么是唐朝三问？如何用唐朝三问分析企业？",
-      "expected_output": "应详细解释唐朝三问的三个核心问题及其检验指标",
+      "id": "insurance_special_case",
+      "prompt": "分析中国平安的资产质量和估值。",
+      "should_trigger": true,
+      "task_mode": "完整分析",
       "assertions": [
-        {"name": "explains_three_questions", "description": "输出解释了唐朝三问的三个问题"},
-        {"name": "explains_key_indicators", "description": "输出解释了每个问题的关键指标"},
-        {"name": "provides_examples", "description": "输出提供了实际应用示例"}
+        {"name": "uses_insurance_metrics", "description": "覆盖内含价值、新业务价值、偿付能力、投资资产和综合成本率等适用指标"},
+        {"name": "avoids_generic_thresholds", "description": "不套用普通企业经营现金流和负债率阈值"}
       ]
     },
     {
-      "id": 5,
-      "prompt": "帮我筛选ROE大于20%的公司应该关注哪些指标？",
-      "expected_output": "应解释ROE筛选标准、ROE来源分析（杜邦分析）、以及ROE筛选后的进一步分析步骤",
+      "id": "cyclical_normalization",
+      "prompt": "现在煤价高，能不能用兖矿能源今年利润直接做DCF？",
+      "should_trigger": true,
+      "task_mode": "估值",
       "assertions": [
-        {"name": "explains_roe_standards", "description": "输出解释了ROE筛选标准"},
-        {"name": "explains_roe_source", "description": "输出解释了ROE来源分析"},
-        {"name": "explains_next_steps", "description": "输出解释了筛选后的分析步骤"}
+        {"name": "normalizes_cycle", "description": "使用完整周期的价格、销量、成本和盈利中枢"},
+        {"name": "rejects_peak_extrapolation", "description": "不将周期高点单年利润永久外推"},
+        {"name": "uses_scenarios", "description": "提供周期情景而非单点结论"}
       ]
+    },
+    {
+      "id": "missing_data_stop_condition",
+      "prompt": "一家制造企业经营现金流100亿、资本开支20亿，其他数据没有，直接算每股买入价。",
+      "should_trigger": true,
+      "task_mode": "估值",
+      "assertions": [
+        {"name": "identifies_missing_inputs", "description": "指出股本、净债务、增长、折现率、期间和来源缺失"},
+        {"name": "stops_precise_valuation", "description": "不使用默认参数生成精确每股价格"},
+        {"name": "may_show_formula_only", "description": "可以展示公式或示例但明确不是公司估值结论"}
+      ]
+    },
+    {
+      "id": "controlled_data_calculation",
+      "prompt": "只使用这些假设做教学计算：非金融企业基准FCF为100亿元，未来5年增长5%，折现率10%，永续增长2%，净债务200亿元，总股本10亿股。给出股权价值和每股价值，并标注全部为假设。",
+      "should_trigger": true,
+      "task_mode": "估值",
+      "assertions": [
+        {"name": "labels_assumptions", "description": "所有输入明确标记为assumption"},
+        {"name": "uses_valid_terminal_rate", "description": "永续增长率低于折现率"},
+        {"name": "bridges_enterprise_to_equity", "description": "企业价值扣除净债务后再除以股本"},
+        {"name": "shows_reproducible_formula", "description": "过程可由脚本或公式复算"}
+      ]
+    },
+    {
+      "id": "roe_screen_industry_context",
+      "prompt": "帮我筛选连续五年ROE超过20%的A股，并告诉我还要排除什么。",
+      "should_trigger": true,
+      "task_mode": "筛选",
+      "assertions": [
+        {"name": "defines_roe_scope", "description": "定义加权/摊薄、归母、年度和连续性口径"},
+        {"name": "checks_roe_drivers", "description": "用杜邦分解排除高杠杆、一次性收益和低净资产效应"},
+        {"name": "groups_financials", "description": "金融企业与普通企业分组复核"},
+        {"name": "does_not_invent_list", "description": "无实时数据源时不虚构筛选结果"}
+      ]
+    },
+    {
+      "id": "pdf_low_confidence",
+      "prompt": "我上传的年报PDF自动提取出了营业收入0、净利润35亿，但没有页码和单位，继续完成估值。",
+      "should_trigger": true,
+      "task_mode": "估值",
+      "assertions": [
+        {"name": "treats_zero_as_missing", "description": "不把无法确认的0当作真实披露值"},
+        {"name": "requires_source_verification", "description": "要求核对原表页码、单位、本期列和合并口径"},
+        {"name": "stops_valuation", "description": "核验前停止精确估值"}
+      ]
+    },
+    {
+      "id": "management_evidence",
+      "prompt": "如何判断美的集团管理层是否优秀？",
+      "should_trigger": true,
+      "task_mode": "专项分析",
+      "assertions": [
+        {"name": "uses_named_roles", "description": "核查实控人、董事长、总经理、CFO及任期"},
+        {"name": "uses_capital_allocation_evidence", "description": "用并购、减值、分红、回购、激励和ROIC记录判断"},
+        {"name": "avoids_unsupported_praise", "description": "没有事实时不写诚信或优秀"}
+      ]
+    },
+    {
+      "id": "non_trigger_product_help",
+      "prompt": "腾讯会议怎么设置虚拟背景？",
+      "should_trigger": false,
+      "task_mode": null,
+      "assertions": []
+    },
+    {
+      "id": "non_trigger_stock_quote",
+      "prompt": "600519今天涨了多少？",
+      "should_trigger": false,
+      "task_mode": null,
+      "assertions": []
+    },
+    {
+      "id": "non_trigger_technical_analysis",
+      "prompt": "帮我看腾讯股价的MACD金叉和压力位。",
+      "should_trigger": false,
+      "task_mode": null,
+      "assertions": []
+    },
+    {
+      "id": "non_trigger_news_summary",
+      "prompt": "总结一下今天关于招商银行的三条新闻。",
+      "should_trigger": false,
+      "task_mode": null,
+      "assertions": []
     }
   ]
 }
