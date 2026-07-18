@@ -4,14 +4,16 @@
     {
       "id": 1,
       "prompt": "帮我分析贵州茅台这家公司，用唐朝投资方法分析它的投资价值",
-      "expected_output": "应形成一篇完整的投资分析文章：开头有核心投资判断，正文包含唐朝三问验证、ROE分析、商业模式分析、利润质量分析、资产质量分析、护城河分析、核心管理层与资本配置分析、估值计算、风险反驳和投资建议；数据必须服务于结论，而不是简单罗列。",
+      "expected_output": "应形成一篇完整的投资分析文章：不仅给出投资判断，还能帮助读者理解公司业务。正文应覆盖生意质量、利润真实性、持续盈利能力、ROE分析、商业模式分析、利润质量分析、资产质量分析、护城河分析、核心管理层与资本配置分析、估值计算、风险反驳和投资建议；数据必须服务于结论，而不是简单罗列。除非用户要求解释方法本身，个股报告正文不应暴露方法来源名称。",
       "assertions": [
-        {"name": "contains_tang_three_questions", "description": "输出包含唐朝三问（赚钱吗、真钱吗、可持续吗）"},
+        {"name": "contains_core_three_tests", "description": "输出覆盖生意是否赚钱、利润是否真实、盈利是否可持续三个核心问题"},
         {"name": "contains_roe_analysis", "description": "输出包含ROE分析"},
         {"name": "contains_asset_quality_analysis", "description": "输出包含核心资产与资产质量分析，识别真正带来盈利的核心资产，并解释这些资产如何转化为收入、利润和自由现金流"},
         {"name": "assesses_future_earning_assets", "description": "输出判断核心资产的产出效率、可持续性和未来盈利能力，而不只是检查坏账或减值风险"},
         {"name": "contains_management_analysis", "description": "输出包含核心管理层与资本配置分析，覆盖关键人物、历史经营记录、股东回报、并购投资、激励一致性和治理风险"},
         {"name": "uses_management_evidence", "description": "管理层评价必须有事实或数据支撑，不得只写管理层优秀、诚信等空泛判断"},
+        {"name": "explains_business_model_clearly", "description": "输出能让读者看懂公司卖什么、卖给谁、客户为什么付钱、收入怎么形成、关键成本和增长驱动是什么"},
+        {"name": "maps_financials_to_business", "description": "能把收入、利润、现金流、资产和估值变化解释成业务变化，而不只是罗列财务指标"},
         {"name": "contains_valuation", "description": "输出包含估值计算"},
         {"name": "contains_investment_advice", "description": "输出包含投资建议"},
         {"name": "has_executive_thesis", "description": "开头包含明确的核心投资判断，而不是直接罗列数据"},
