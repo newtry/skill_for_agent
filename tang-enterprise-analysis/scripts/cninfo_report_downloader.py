@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 巨潮资讯网年报下载器
-从www.cninfo.com.cn下载A股和港股上市公司年报、季报
+从www.cninfo.com.cn下载脚本内已登记A股公司的年报、季报
 
 功能：
 1. 支持股票代码搜索
@@ -14,6 +14,7 @@ import os
 import re
 import time
 import requests
+from datetime import datetime
 from typing import List, Optional, Dict
 from pathlib import Path
 
@@ -27,8 +28,8 @@ class CNINFODownloader:
         files = downloader.download_annual_reports('600519', years=[2022, 2023, 2024])
     """
     
-    SEARCH_URL = "http://www.cninfo.com.cn/new/hisAnnouncement/query"
-    PDF_URL = "http://static.cninfo.com.cn/{}"
+    SEARCH_URL = "https://www.cninfo.com.cn/new/hisAnnouncement/query"
+    PDF_URL = "https://static.cninfo.com.cn/{}"
     
     STOCK_INFO = {
         '600519': {'name': '贵州茅台', 'orgId': 'gssh0600519'},
@@ -50,10 +51,6 @@ class CNINFODownloader:
         '601398': {'name': '工商银行', 'orgId': 'gssh0601398'},
         '601888': {'name': '中国中免', 'orgId': 'gssh0601888'},
         '603259': {'name': '药明康德', 'orgId': 'gssh0603259'},
-        '00700': {'name': '腾讯控股', 'orgId': 'hkex00000700'},
-        '00175': {'name': '吉利汽车', 'orgId': 'hkex00000175'},
-        '01810': {'name': '小米集团', 'orgId': 'hkex00001810'},
-        '09988': {'name': '阿里巴巴', 'orgId': 'hkex00009988'},
     }
     
     HEADERS = {
@@ -62,8 +59,8 @@ class CNINFODownloader:
         "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         "X-Requested-With": "XMLHttpRequest",
-        "Origin": "http://www.cninfo.com.cn",
-        "Referer": "http://www.cninfo.com.cn/new/commonUrl/pageOfSearch?url=disclosure"
+        "Origin": "https://www.cninfo.com.cn",
+        "Referer": "https://www.cninfo.com.cn/new/commonUrl/pageOfSearch?url=disclosure"
     }
     
     def __init__(self, download_dir: str = "./annual_reports"):
@@ -83,18 +80,19 @@ class CNINFODownloader:
         搜索股票
         
         Args:
-            keyword: 股票代码或名称
+            keyword: 脚本内已登记的A股股票代码或名称，不支持拼音
             
         Returns:
             股票信息字典
         """
-        if keyword in self.STOCK_INFO:
-            info = self.STOCK_INFO[keyword].copy()
-            info['code'] = keyword
+        normalized_keyword = re.sub(r"\s+", "", str(keyword))
+        if normalized_keyword in self.STOCK_INFO:
+            info = self.STOCK_INFO[normalized_keyword].copy()
+            info['code'] = normalized_keyword
             return info
         
         for code, info in self.STOCK_INFO.items():
-            if keyword in info['name'] or info['name'] in keyword:
+            if normalized_keyword == re.sub(r"\s+", "", info['name']):
                 result = info.copy()
                 result['code'] = code
                 return result
@@ -141,7 +139,7 @@ class CNINFODownloader:
                     data=data,
                     timeout=30
                 )
-                
+                response.raise_for_status()
                 result = response.json()
                 
                 if result.get('announcements') is None:
@@ -180,14 +178,22 @@ class CNINFODownloader:
                 stream=True
             )
             
-            if response.status_code == 200:
-                with open(filepath, 'wb') as f:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        f.write(chunk)
-                return True
-            else:
-                print(f"HTTP状态码: {response.status_code}")
+            response.raise_for_status()
+            content_type = response.headers.get("Content-Type", "").lower()
+            chunks = response.iter_content(chunk_size=8192)
+            first_chunk = next(chunks, b"")
+            if not first_chunk.startswith(b"%PDF") and "pdf" not in content_type:
+                print("下载内容不是PDF，已放弃保存")
                 return False
+
+            temporary_path = filepath.with_suffix(filepath.suffix + ".part")
+            with open(temporary_path, 'wb') as f:
+                f.write(first_chunk)
+                for chunk in chunks:
+                    if chunk:
+                        f.write(chunk)
+            os.replace(temporary_path, filepath)
+            return True
                 
         except Exception as e:
             print(f"下载PDF失败: {e}")
@@ -227,7 +233,7 @@ class CNINFODownloader:
         
         if years is None:
             if year is None:
-                years = [2024]
+                years = [datetime.now().year - 1]
             else:
                 years = [year]
         
@@ -327,7 +333,7 @@ class CNINFODownloader:
         print(f"找到股票: {code} - {name}")
         
         if year is None:
-            year = 2025
+            year = datetime.now().year
         
         output_path = Path(output_dir) if output_dir else self.download_dir
         output_path.mkdir(parents=True, exist_ok=True)
