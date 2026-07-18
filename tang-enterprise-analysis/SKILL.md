@@ -42,7 +42,7 @@ description: 基于价值投资框架分析A股和港股上市公司的商业模
 
 - 普通非金融企业：消费、制造、互联网、软件、医药、公用事业等。
 - 金融企业：银行、保险、券商。必须读取 [金融企业分析](references/financial_institutions.md)，不得套用普通企业经营现金流DCF。
-- 强周期或资源企业：使用周期中枢盈利、资产负债表和供需位置，不使用周期顶部单年利润外推。
+- 强周期或资源企业：读取 [周期企业分析](references/cyclical_companies.md)，使用周期中枢盈利、资产负债表和供需位置，不使用周期顶部单年利润外推。
 - 亏损、困境反转或早期成长企业：优先讨论生存能力、融资需求和情景概率；现金流不可预测时不得给伪精确DCF。
 
 ### 3. 建立可追溯数据包
@@ -75,13 +75,13 @@ ROE、毛利率和净利率只作为路标。必须结合行业、历史区间�
 - 维持性资本开支、营运资金占用和自由现金流。
 - 审计意见、关联交易、资金占用、担保、减值和会计政策变化。
 
-先识别真正产生收益的核心资产，再判断其真实性、产出效率、资本需求和衰减风险。详细方法见 [利润质量分析](references/profit_quality_analysis.md) 和 [财报解读](references/financial_statement_analysis.md)。
+先识别真正产生收益的核心资产，再判断其真实性、产出效率、资本需求和衰减风险。详细方法见 [财报、利润与资产质量](references/financial_statement_analysis.md)。
 
 ### 6. 评估护城河和管理层
 
 护城河必须由可观察结果验证，例如持续的价格权、留存率、单位成本优势、网络密度、转换成本、牌照稀缺性或长期市场份额。不要给品牌、技术等标签分配固定绝对分数。
 
-管理层至少核查实际控制人、董事长、CEO/总经理、CFO、任期、经营记录、并购与减值、分红回购、增减持、股权激励、关联交易、处罚和接班风险。区分管理层能力、诚信和股东利益一致性，并用事实支持。
+管理层至少核查实际控制人、董事长、CEO/总经理、CFO、任期、经营记录、并购与减值、分红回购、增减持、股权激励、关联交易、处罚和接班风险。区分管理层能力、诚信和股东利益一致性，并用事实支持。详细方法见 [管理层与资本配置](references/management_capital_allocation.md)。
 
 ### 7. 选择估值方法
 
@@ -109,7 +109,7 @@ FCFF = EBIT × (1 - 税率) + 折旧摊销 - 资本开支 - 营运资金增加
 - A股公告下载：`scripts/cninfo_report_downloader.py`。当前仅支持脚本内登记的代码或名称，不支持任意股票或拼音。港股优先使用港交所披露易或公司投资者关系页面。
 - PDF提取：`scripts/pdf_data_extractor.py`。提取结果仅作候选数据，必须对照原表、单位、期间和合并口径复核。
 - 历史趋势：`scripts/historical_data_analyzer.py`。
-- 利润质量：`scripts/profit_quality_analyzer.py`。评分只作提示，不替代行业判断。
+- 利润质量：`scripts/profit_quality_analyzer.py`。只把输出当作异常线索；不得在报告中把综合分数作为企业质量结论。
 - 估值计算：`scripts/valuation_calculator.py`。仅用于适用普通企业的现金流模型及明确支持的金融模型。
 
 不要因为工具返回 `0`、空列表或默认参数就假设数据真实存在。运行脚本前统一金额单位；股本和金额必须使用兼容量纲。
@@ -139,10 +139,11 @@ FCFF = EBIT × (1 - 税率) + 折旧摊销 - 资本开支 - 营运资金增加
 
 - 投资原则或“三问”：读取 [投资思想总览](references/tang_investment_philosophy.md)。
 - 商业模式或ROE：读取 [商业模式分析](references/business_model_analysis.md)。
-- 利润和现金流：读取 [利润质量分析](references/profit_quality_analysis.md)。
-- 报表科目和排雷：读取 [财报解读](references/financial_statement_analysis.md)。
+- 利润、现金流、资产和排雷：读取 [财报、利润与资产质量](references/financial_statement_analysis.md)。
+- 管理层、治理、分红回购或并购：读取 [管理层与资本配置](references/management_capital_allocation.md)。
 - 估值：读取 [估值方法](references/valuation_methods.md)；金融企业同时读取 [金融企业分析](references/financial_institutions.md)。
+- 资源、化工、钢铁、航运等强周期企业：读取 [周期企业分析](references/cyclical_companies.md)。
 - 数据获取或核验：读取 [数据质量规范](references/data_quality.md)。
-- 案例只用于理解结构，不得把其中历史数字当作当前数据：读取 [案例分析](references/case_studies.md)。
+- 案例只用于理解推理结构，不得把合成数字当作真实数据：读取 [合成案例](references/case_studies.md)。
 
 仅当用户明确要求发布时，使用 `scripts/wechat_draft_uploader.py` 创建微信公众号草稿；不得自动群发或提交 `.env`。

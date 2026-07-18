@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -22,6 +23,27 @@ pdf_extractor = load_module("pdf_data_extractor", "scripts/pdf_data_extractor.py
 
 
 class ValuationTests(unittest.TestCase):
+    def test_fcff_and_equity_bridge(self):
+        fcff = valuation.calculate_fcff(100, 0.25, 10, 20, 5)
+        self.assertEqual(fcff, 60)
+        equity_value = valuation.bridge_enterprise_to_equity_value(
+            1000,
+            excess_cash=100,
+            non_operating_investments=50,
+            interest_bearing_debt=200,
+            lease_liabilities=20,
+            minority_interest=30,
+        )
+        self.assertEqual(equity_value, 900)
+
+    def test_explicit_cash_flow_dcf_reports_terminal_share(self):
+        result = valuation.calculate_dcf_from_cash_flows(
+            [100, 105, 110], discount_rate=0.1, perpetual_growth_rate=0.02
+        )
+        self.assertGreater(result["企业价值"], 0)
+        self.assertGreater(result["终值占比"], 0)
+        self.assertLess(result["终值占比"], 1)
+
     def test_dcf_known_value(self):
         value = valuation.calculate_intrinsic_value(100, 0, 1, 0, 0.1)
         self.assertAlmostEqual(value, 1000.0)
@@ -143,6 +165,53 @@ class EvalSchemaTests(unittest.TestCase):
         self.assertGreaterEqual(labels.count(True), 8)
         self.assertGreaterEqual(labels.count(False), 4)
         self.assertEqual(len({case["id"] for case in data["evals"]}), len(labels))
+
+
+class ReferenceQualityTests(unittest.TestCase):
+    def setUp(self):
+        self.references = SKILL_ROOT / "references"
+
+    def test_reference_docs_are_routable_and_bounded(self):
+        files = sorted(self.references.glob("*.md"))
+        self.assertGreaterEqual(len(files), 8)
+        total_lines = 0
+        for path in files:
+            content = path.read_text(encoding="utf-8")
+            line_count = len(content.splitlines())
+            total_lines += line_count
+            self.assertIn("## 目录", content, path.name)
+            self.assertLessEqual(line_count, 350, path.name)
+        self.assertLessEqual(total_lines, 1800)
+
+    def test_reference_links_resolve(self):
+        markdown_files = [SKILL_ROOT / "SKILL.md", *self.references.glob("*.md")]
+        for path in markdown_files:
+            content = path.read_text(encoding="utf-8")
+            for link in re.findall(r"\]\(([^)#]+\.md)(?:#[^)]+)?\)", content):
+                target = path.parent / link
+                self.assertTrue(target.exists(), f"{path.name}: {link}")
+
+    def test_deprecated_rules_do_not_return(self):
+        content = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in self.references.glob("*.md")
+        )
+        forbidden = (
+            "FCF = 净利润 ×",
+            "理论上最科学",
+            "折现率是否不低于8%",
+            "永续增长率是否在3%-5%之间",
+            "核心持仓，仓位",
+            "招商银行是银行股里最好的",
+        )
+        for phrase in forbidden:
+            self.assertNotIn(phrase, content)
+
+    def test_examples_are_synthetic(self):
+        content = (self.references / "case_studies.md").read_text(encoding="utf-8")
+        self.assertIn("全部为合成教学材料", content)
+        for company in ("贵州茅台", "腾讯控股", "招商银行", "康美药业"):
+            self.assertNotIn(company, content)
 
 
 if __name__ == "__main__":
