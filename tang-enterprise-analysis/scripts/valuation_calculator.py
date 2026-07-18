@@ -51,6 +51,94 @@ def calculate_fcf(operating_cash_flow, capex=0):
     return operating_cash_flow - capex
 
 
+def calculate_fcff(
+    ebit,
+    operating_tax_rate,
+    depreciation_amortization,
+    capex,
+    change_in_working_capital,
+):
+    """计算企业自由现金流FCFF。"""
+    ebit = _number("EBIT", ebit)
+    operating_tax_rate = _number(
+        "经营税率", operating_tax_rate, minimum=0, maximum=1
+    )
+    depreciation_amortization = _number(
+        "折旧摊销", depreciation_amortization, minimum=0
+    )
+    capex = _number("资本开支", capex, minimum=0)
+    change_in_working_capital = _number(
+        "营运资金增加", change_in_working_capital
+    )
+    return (
+        ebit * (1 - operating_tax_rate)
+        + depreciation_amortization
+        - capex
+        - change_in_working_capital
+    )
+
+
+def bridge_enterprise_to_equity_value(
+    enterprise_value,
+    excess_cash=0,
+    non_operating_investments=0,
+    interest_bearing_debt=0,
+    lease_liabilities=0,
+    minority_interest=0,
+    preferred_claims=0,
+):
+    """将企业价值桥接为普通股权价值。"""
+    enterprise_value = _number("企业价值", enterprise_value)
+    additions = (
+        _number("超额现金", excess_cash, minimum=0)
+        + _number("非经营性投资", non_operating_investments, minimum=0)
+    )
+    deductions = (
+        _number("有息负债", interest_bearing_debt, minimum=0)
+        + _number("租赁负债", lease_liabilities, minimum=0)
+        + _number("少数股东权益", minority_interest, minimum=0)
+        + _number("其他优先索取权", preferred_claims, minimum=0)
+    )
+    return enterprise_value + additions - deductions
+
+
+def calculate_dcf_from_cash_flows(
+    cash_flows, discount_rate, perpetual_growth_rate
+):
+    """折现显式现金流序列，并返回终值占比。"""
+    if not isinstance(cash_flows, (list, tuple)) or not cash_flows:
+        raise ValueError("现金流序列不能为空")
+    normalized_cash_flows = [
+        _number(f"第{index}年现金流", value)
+        for index, value in enumerate(cash_flows, start=1)
+    ]
+    discount_rate, perpetual_growth_rate = _discount_pair(
+        discount_rate, perpetual_growth_rate
+    )
+    forecast_present_value = sum(
+        cash_flow / (1 + discount_rate) ** year
+        for year, cash_flow in enumerate(normalized_cash_flows, start=1)
+    )
+    terminal_value = (
+        normalized_cash_flows[-1]
+        * (1 + perpetual_growth_rate)
+        / (discount_rate - perpetual_growth_rate)
+    )
+    terminal_present_value = terminal_value / (
+        1 + discount_rate
+    ) ** len(normalized_cash_flows)
+    enterprise_value = forecast_present_value + terminal_present_value
+    terminal_share = (
+        terminal_present_value / enterprise_value if enterprise_value != 0 else None
+    )
+    return {
+        "明确预测期现值": forecast_present_value,
+        "终值现值": terminal_present_value,
+        "企业价值": enterprise_value,
+        "终值占比": terminal_share,
+    }
+
+
 def calculate_intrinsic_value(
     fcf, growth_rate, years, perpetual_growth_rate, discount_rate
 ):
