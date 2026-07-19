@@ -106,8 +106,9 @@ FCFF = EBIT × (1 - 税率) + 折旧摊销 - 资本开支 - 营运资金增加
 
 ## 数据工具
 
-- A股公告下载：`scripts/cninfo_report_downloader.py`。当前仅支持脚本内登记的代码或名称，不支持任意股票或拼音。港股优先使用港交所披露易或公司投资者关系页面。
-- PDF提取：`scripts/pdf_data_extractor.py`。提取结果仅作候选数据，必须对照原表、单位、期间和合并口径复核。
+- A股公告下载：`scripts/cninfo_report_downloader.py`。当前仅支持脚本内登记的代码或名称，不支持任意股票或拼音。
+- 港股公告下载：`scripts/hkex_report_downloader.py`。传入五位或可补齐为五位的港股代码和报告年度；先用 `--list-only` 核对标题、年度、发布日期和URL，再下载PDF。
+- PDF提取：`scripts/pdf_data_extractor.py`。港股字段来自 `references/hkfrs_field_mapping.json`；金额统一为报告币种的1亿单位，股份统一为绝对股数。遇到裸 `$m` 时必须从年报确认币种并显式传入 `reporting_currency`。提取结果仅作候选数据，必须对照原表、单位、期间和合并口径复核。
 - 历史趋势：`scripts/historical_data_analyzer.py`。
 - 利润质量：`scripts/profit_quality_analyzer.py`。只把输出当作异常线索；不得在报告中把综合分数作为企业质量结论。
 - 估值计算：`scripts/valuation_calculator.py`。仅用于适用普通企业的现金流模型及明确支持的金融模型。
@@ -144,6 +145,7 @@ FCFF = EBIT × (1 - 税率) + 折旧摊销 - 资本开支 - 营运资金增加
 - 估值：读取 [估值方法](references/valuation_methods.md)；金融企业同时读取 [金融企业分析](references/financial_institutions.md)。
 - 资源、化工、钢铁、航运等强周期企业：读取 [周期企业分析](references/cyclical_companies.md)。
 - 数据获取或核验：读取 [数据质量规范](references/data_quality.md)。
+- 港股公告、HKFRS字段、报告币种或股份口径：读取 [港股公告与财务口径](references/hk_stock_data.md)。
 - 案例只用于理解推理结构，不得把合成数字当作真实数据：读取 [合成案例](references/case_studies.md)。
 
 仅当用户明确要求发布时，使用 `scripts/wechat_draft_uploader.py` 创建微信公众号草稿；不得自动群发或提交 `.env`。
