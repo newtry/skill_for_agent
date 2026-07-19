@@ -1,0 +1,101 @@
+{
+  "tencent_2024": {
+    "source_url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2025/0408/2025040800667.pdf",
+    "reporting_currency": "CNY",
+    "records": [
+      {
+        "page": 124,
+        "page_text": "Consolidated Income Statement for the year ended 31 December 2024. Note RMB*Million RMB*Million. Revenues. Gross profit. Profit before income tax.",
+        "data": [
+          ["Revenues", "", "", ""],
+          ["", "6", "660,257", "609,015"],
+          ["Cost of revenues", "7", "(311,011)", "(315,906)"],
+          ["Gross profit", "", "349,246", "293,109"]
+        ]
+      },
+      {
+        "page": 133,
+        "page_text": "Consolidated Statement of Cash Flows for the year ended 31 December 2024. RMB*Million. Cash flows from operating activities.",
+        "data": [
+          ["Net cash generated from operating activities", "", "258,521", "222,903"]
+        ]
+      },
+      {
+        "page": 199,
+        "page_text": "Weighted average number of ordinary shares in issue excluding shares held for share award schemes and treasury shares (million shares) 9,269 9,455. Basic EPS (RMB per share) 20.938 12.186.",
+        "data": [["2024", "2023"]]
+      },
+      {
+        "page": 200,
+        "page_text": "Weighted average number of ordinary shares for the calculation of diluted EPS (million shares) 9,408 9,610. Diluted EPS (RMB per share) 20.486 11.887.",
+        "data": [["2024", "2023"]]
+      }
+    ]
+  },
+  "meituan_2024": {
+    "source_url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2025/0428/2025042800235.pdf",
+    "reporting_currency": "CNY",
+    "records": [
+      {
+        "page": 204,
+        "page_text": "Consolidated income statement for the year ended December 31, 2024. Amounts expressed in RMB'000. Revenues. Gross profit. Profit before income tax.",
+        "data": [
+          ["Revenues", "", "5,6 337,591,576", "276,744,954"],
+          ["Cost of revenues", "", "7 (207,806,982", ") (179,553,793"],
+          ["Gross profit", "", "129,784,594", "97,191,161"]
+        ]
+      },
+      {
+        "page": 211,
+        "page_text": "Consolidated statement of cash flows for the year ended December 31, 2024. Amounts expressed in RMB'000. Cash flows from operating activities.",
+        "data": [
+          ["Net cash generated from operating activities", "", "57,146,784", "40,471,899"]
+        ]
+      },
+      {
+        "page": 292,
+        "page_text": "Weighted average number of ordinary shares outstanding (thousands) 6,125,058 6,212,999. Basic earnings per share (RMB) 5.85 2.23.",
+        "data": [["2024", "2023"]]
+      },
+      {
+        "page": 293,
+        "page_text": "Weighted average number of ordinary shares used as the denominator in calculating diluted earnings per share (thousands) 6,225,689 6,300,268. Diluted earnings per share (RMB) 5.66 2.11.",
+        "data": [["2024", "2023"]]
+      }
+    ]
+  },
+  "hsbc_2024": {
+    "source_url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2025/0219/2025021900181.pdf",
+    "reporting_currency": "USD",
+    "records": [
+      {
+        "page": 343,
+        "page_text": "Consolidated income statement for the year ended 31 December 2024. $m. Net interest income. Profit before tax.",
+        "data": [
+          ["Net interest income", "", "32,733", "35,796", "32,670"]
+        ]
+      },
+      {
+        "page": 345,
+        "page_text": "Consolidated balance sheet at 31 December 2024. $m. Total assets. Cash and balances at central banks.",
+        "data": [
+          ["Loans and advances to customers", "", "930,658", "938,535"],
+          ["Total assets", "", "3,017,048", "3,038,677"],
+          ["Customer accounts", "", "1,654,955", "1,611,647"]
+        ]
+      },
+      {
+        "page": 349,
+        "page_text": "Consolidated statement of cash flows for the year ended 31 December 2024. $m. Cash flows from operating activities.",
+        "data": [
+          ["Net cash from operating activities", "", "65,305", "42,713"]
+        ]
+      },
+      {
+        "page": 385,
+        "page_text": "Basic and diluted earnings per share. $m (millions) $. Basic1 22,917 18,357 1.25 22,432 19,478 1.15. Diluted1 22,917 18,485 1.24 22,432 19,600 1.14.",
+        "data": [["Basic and diluted earnings per share", "2024"]]
+      }
+    ]
+  }
+}

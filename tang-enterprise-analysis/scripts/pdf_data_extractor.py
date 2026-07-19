@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-"""
-PDF年报数据提取工具
-从A股上市公司年报/季报PDF中自动提取关键财务数据
-"""
+"""Extract candidate financial data from A-share and HKEX annual-report PDFs."""
 
+import json
 import os
 import re
 import glob
@@ -17,6 +15,11 @@ except ImportError:
     raise
 
 
+MAPPING_PATH = Path(__file__).parent.parent / "references" / "hkfrs_field_mapping.json"
+with MAPPING_PATH.open(encoding="utf-8") as mapping_file:
+    FINANCIAL_FIELD_MAPPING = json.load(mapping_file)
+
+
 class PDFReportExtractor:
     """PDF年报候选数据提取器。
 
@@ -28,28 +31,86 @@ class PDFReportExtractor:
         "千元": 1_000,
         "万元": 10_000,
         "百万元": 1_000_000,
+        "thousand": 1_000,
+        "million": 1_000_000,
+        "billion": 1_000_000_000,
     }
 
-    def __init__(self, pdf_path, max_pages=None):
+    def __init__(
+        self,
+        pdf_path,
+        max_pages=None,
+        reporting_currency=None,
+        page_numbers=None,
+    ):
         self.pdf_path = pdf_path
         self.filename = os.path.basename(pdf_path)
+        self.default_currency = reporting_currency
+        self.detected_currencies = set()
         self.text = ""
         self.tables = []
         self.sources = {}
         self.warnings = []
-        self._load_pdf(max_pages=max_pages)
+        self._load_pdf(max_pages=max_pages, page_numbers=page_numbers)
 
-    def _load_pdf(self, max_pages=None):
+    @classmethod
+    def _page_needs_text_table(cls, page_text):
+        normalized = cls._normalize(page_text)
+        titles = []
+        for config in FINANCIAL_FIELD_MAPPING["statements"].values():
+            titles.extend(config["titles"])
+        share_aliases = [
+            alias
+            for aliases in FINANCIAL_FIELD_MAPPING["shares"].values()
+            for alias in aliases
+        ]
+        return any(cls._normalize(item) in normalized for item in [*titles, *share_aliases])
+
+    @classmethod
+    def _table_has_labels(cls, table):
+        aliases = []
+        for config in FINANCIAL_FIELD_MAPPING["statements"].values():
+            for key, field_aliases in config["fields"].items():
+                aliases.extend([key, *field_aliases])
+        for key, field_aliases in FINANCIAL_FIELD_MAPPING["shares"].items():
+            aliases.extend([key, *field_aliases])
+        normalized_aliases = {
+            cls._normalize(alias) for alias in aliases if len(cls._normalize(alias)) >= 4
+        }
+        for row in table:
+            text = " ".join(str(cell or "") for cell in row)
+            normalized = cls._normalize(text)
+            has_number = any(cls._numbers_from_cell(cell) for cell in row)
+            if has_number and any(alias in normalized for alias in normalized_aliases):
+                return True
+        return False
+
+    def _load_pdf(self, max_pages=None, page_numbers=None):
         """加载PDF并提取文本"""
+        selected_pages = set(page_numbers or [])
         with pdfplumber.open(self.pdf_path) as pdf:
             for i, page in enumerate(pdf.pages):
                 if max_pages is not None and i >= max_pages:
                     break
+                if selected_pages and (i + 1) not in selected_pages:
+                    continue
                 page_text = page.extract_text()
                 if page_text:
                     self.text += page_text + "\n"
 
                 tables = page.extract_tables()
+                if (
+                    self._page_needs_text_table(page_text or "")
+                    and not any(self._table_has_labels(table) for table in tables)
+                ):
+                    tables = page.extract_tables(
+                        {
+                            "vertical_strategy": "text",
+                            "horizontal_strategy": "text",
+                            "snap_tolerance": 5,
+                            "join_tolerance": 5,
+                        }
+                    )
                 for table in tables:
                     if table and len(table) > 1:
                         self.tables.append({
@@ -62,85 +123,194 @@ class PDFReportExtractor:
 
     @staticmethod
     def _normalize(value):
-        return re.sub(r"\s+", "", str(value or ""))
+        text = str(value or "").casefold().replace("’", "'").replace("&", "and")
+        return re.sub(r"[\s:：,，.。;；()（）\[\]{}\-_/]+", "", text)
 
     @staticmethod
     def _parse_number(value):
-        text = str(value or "").strip().replace(",", "").replace(" ", "")
+        text = str(value or "").strip()
         if not text or text in {"-", "—", "--", "不适用"}:
             return None
-        negative = text.startswith("(") and text.endswith(")")
+        negative = text.startswith("(") or text.endswith(")")
         if negative:
-            text = text[1:-1]
-        text = text.replace("￥", "").replace("¥", "")
+            text = text.strip("()")
+        text = re.sub(
+            r"(?i)(?:rmb|cny|hk\$|hkd|us\$|usd|gbp|£|￥|¥)", "", text
+        )
+        text = text.strip()
+        if not re.fullmatch(
+            r"-?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?", text
+        ):
+            return None
+        text = text.replace(",", "")
         try:
             number = float(text)
             return -number if negative else number
         except ValueError:
             return None
 
+    @classmethod
+    def _numbers_from_cell(cls, value):
+        direct = cls._parse_number(value)
+        if direct is not None:
+            return [direct]
+        text = str(value or "")
+        tokens = re.findall(
+            r"\(?-?\d{1,3}(?:,\d{3})+(?:\.\d+)?\)?|\(?-?\d+(?:\.\d+)?\)?",
+            text,
+        )
+        numbers = []
+        for token in tokens:
+            number = cls._parse_number(token)
+            if number is not None:
+                numbers.append(number)
+        return numbers
+
     def _table_unit(self, record):
         context = record["page_text"] + " " + str(record["data"][:3])
-        matches = re.findall(
+        currency = self._detect_currency(context)
+        chinese_matches = re.findall(
             r"单位\s*[：:]\s*(?:人民币)?\s*(百万元|万元|千元|元)",
             context,
         )
-        if matches:
-            unit = matches[-1]
-            return unit, self.UNIT_SCALES[unit], "high"
+        unit = None
+        scale = None
+        if chinese_matches:
+            unit = chinese_matches[-1]
+            scale = self.UNIT_SCALES[unit]
+            currency = currency or "CNY"
+        else:
+            currency_token = r"(?:rmb|cny|hk\$|hkd|us\s*\$|usd|gbp|£|\$)"
+            unit_token = r"(billions?|bn|millions?|mn|m|thousands?|000s?|000)"
+            separator = r"\s*['’＊*·]?\s*"
+            english_patterns = (
+                rf"(?i)(?:expressed|amounts?)?\s*in\s+"
+                rf"(?:{currency_token}{separator})?{unit_token}",
+                rf"(?i){currency_token}{separator}{unit_token}\b",
+            )
+            unit_match = None
+            for pattern in english_patterns:
+                matches = re.findall(pattern, context)
+                if matches:
+                    unit_match = matches[-1].casefold()
+                    break
+            if unit_match:
+                if unit_match.startswith(("billion", "bn")):
+                    unit, scale = "billion", self.UNIT_SCALES["billion"]
+                elif unit_match.startswith(("million", "mn", "m")):
+                    unit, scale = "million", self.UNIT_SCALES["million"]
+                else:
+                    unit, scale = "thousand", self.UNIT_SCALES["thousand"]
+
+        currency = currency or getattr(self, "default_currency", None)
+        if unit is not None:
+            confidence = "high" if currency else "medium"
+            if currency:
+                if not hasattr(self, "detected_currencies"):
+                    self.detected_currencies = set()
+                self.detected_currencies.add(currency)
+            else:
+                self._add_warning(
+                    f"第{record['page']}页识别到金额单位但未识别报告币种"
+                )
+            return unit, scale, currency or "UNKNOWN", confidence
         warning = f"第{record['page']}页未识别金额单位，暂按元换算，必须人工复核"
-        if warning not in self.warnings:
-            self.warnings.append(warning)
-        return "未识别（暂按元）", 1, "low"
+        self._add_warning(warning)
+        return "未识别（暂按基本单位）", 1, currency or "UNKNOWN", "low"
 
     @staticmethod
-    def _match_key(item_name, keys):
-        normalized = re.sub(r"^[（(]?\d+[）).、]?", "", item_name)
-        exact = [key for key in keys if normalized == key]
-        if exact:
-            return exact[0]
-        matches = [key for key in keys if key in normalized]
-        return max(matches, key=len) if matches else None
+    def _detect_currency(context):
+        patterns = (
+            ("CNY", r"(?i)人民币|\brmb\b|\bcny\b"),
+            ("HKD", r"(?i)港币|港元|hk\$|\bhkd\b"),
+            ("USD", r"(?i)美元|us\s*\$|\busd\b|u\.s\.\s*dollars?"),
+            ("GBP", r"(?i)英镑|\bgbp\b|£"),
+        )
+        for currency, pattern in patterns:
+            if re.search(pattern, context):
+                return currency
+        return None
+
+    def _add_warning(self, warning):
+        if warning not in self.warnings:
+            self.warnings.append(warning)
+
+    @classmethod
+    def _match_key(cls, item_name, fields):
+        normalized = re.sub(r"^\d+", "", cls._normalize(item_name))
+        candidates = []
+        for key, aliases in fields.items():
+            for alias in [key, *aliases]:
+                normalized_alias = cls._normalize(alias)
+                if normalized == normalized_alias:
+                    return key
+                if len(normalized_alias) >= 4 and normalized_alias in normalized:
+                    candidates.append((len(normalized_alias), key))
+        return max(candidates)[1] if candidates else None
 
     def _row_value(self, row):
         candidates = []
-        for cell in row[1:5]:
-            number = self._parse_number(cell)
-            if number is not None:
-                candidates.append(number)
+        for cell in row:
+            candidates.extend(self._numbers_from_cell(cell))
         if not candidates:
             return None
-        if (
+        while (
             len(candidates) >= 2
             and abs(candidates[0]) < 1000
-            and abs(candidates[1]) > max(abs(candidates[0]) * 100, 1000)
+            and max(abs(value) for value in candidates[1:])
+            > max(abs(candidates[0]) * 100, 1000)
         ):
-            return candidates[1]
+            candidates.pop(0)
         return candidates[0]
 
-    def _extract_statement(self, statement, keys, title, signatures):
-        data = {key: None for key in keys}
+    def _extract_statement(self, statement):
+        config = FINANCIAL_FIELD_MAPPING["statements"][statement]
+        fields = config["fields"]
+        titles = [self._normalize(title) for title in config["titles"]]
+        signatures = [self._normalize(item) for item in config["signatures"]]
+        data = {key: None for key in fields}
         self.sources[statement] = {}
         for record in self.tables:
             table = record["data"]
             context = self._normalize(record["page_text"] + str(table))
-            if title not in context or not any(sig in context for sig in signatures):
+            if titles and not any(title in context for title in titles):
                 continue
-            unit, scale, confidence = self._table_unit(record)
+            if signatures and not any(sig in context for sig in signatures):
+                continue
+            unit, scale, currency, confidence = self._table_unit(record)
             for row in table:
                 if not row or len(row) < 2:
                     continue
-                item_name = self._normalize(row[0])
-                key = self._match_key(item_name, keys)
+                item_name = " ".join(str(cell or "") for cell in row)
+                key = self._match_key(item_name, fields)
                 if key is None or data[key] is not None:
+                    continue
+                row_numbers = [
+                    number
+                    for cell in row
+                    for number in self._numbers_from_cell(cell)
+                ]
+                if len(self._normalize(item_name)) > 100 and len(row_numbers) < 2:
                     continue
                 value = self._row_value(row)
                 if value is None:
                     continue
-                data[key] = value * scale / 100_000_000
+                normalized_value = value * scale / 100_000_000
+                if key in {
+                    "营业成本",
+                    "销售费用",
+                    "管理费用",
+                    "研发费用",
+                    "财务费用",
+                    "利息费用",
+                }:
+                    normalized_value = abs(normalized_value)
+                data[key] = normalized_value
                 self.sources[statement][key] = {
                     "page": record["page"],
-                    "unit": unit,
+                    "source_unit": unit,
+                    "currency": currency,
+                    "normalized_unit": f"1e8 {currency}",
                     "period_column": "首个可识别本期数，需复核表头",
                     "confidence": confidence,
                 }
@@ -149,50 +319,182 @@ class PDFReportExtractor:
     def extract_composite_balance_sheet(self):
         """
         提取合并资产负债表数据
-        返回单位：亿元
+        返回单位：报告币种的1亿元
         """
-        keys = [
-            "货币资金", "应收账款", "应收票据", "存货", "流动资产合计",
-            "资产总计", "短期借款", "长期借款", "流动负债合计",
-            "负债合计", "所有者权益合计", "其他应收款", "商誉",
-            "合同负债", "股东权益合计", "归属于母公司股东权益合计",
-        ]
-        return self._extract_statement(
-            "资产负债表", keys, "合并资产负债表", ["资产总计", "货币资金"]
-        )
+        return self._extract_statement("资产负债表")
     
     def extract_composite_income_statement(self):
         """
         提取合并利润表数据
-        返回单位：亿元
+        返回单位：报告币种的1亿元
         """
-        keys = [
-            "营业收入", "营业成本", "毛利润", "销售费用", "管理费用",
-            "研发费用", "财务费用", "营业利润", "利润总额", "净利润",
-            "归属于母公司所有者的净利润", "扣除非经常性损益后的净利润",
-            "利息费用",
-        ]
-        data = self._extract_statement(
-            "利润表", keys, "合并利润表", ["营业收入", "营业利润"]
-        )
-        if data["营业收入"] is not None and data["营业成本"] is not None:
-            data["毛利润"] = data["营业收入"] - data["营业成本"]
+        data = self._extract_statement("利润表")
+        if data["毛利润"] is None:
+            if data["营业收入"] is not None and data["营业成本"] is not None:
+                data["毛利润"] = data["营业收入"] - data["营业成本"]
+                self.sources["利润表"]["毛利润"] = {
+                    "kind": "calculated",
+                    "formula": "营业收入 - 营业成本",
+                    "normalized_unit": "1e8 reporting currency",
+                    "confidence": "medium",
+                }
+        if data["营业收入"] is None:
+            if data["毛利润"] is not None and data["营业成本"] is not None:
+                data["营业收入"] = data["毛利润"] + data["营业成本"]
+                self.sources["利润表"]["营业收入"] = {
+                    "kind": "calculated",
+                    "formula": "毛利润 + 营业成本",
+                    "normalized_unit": "1e8 reporting currency",
+                    "confidence": "medium",
+                }
         return data
     
     def extract_composite_cash_flow(self):
         """
         提取合并现金流量表数据
-        返回单位：亿元
+        返回单位：报告币种的1亿元
         """
-        keys = [
-            "经营活动产生的现金流量净额", "投资活动产生的现金流量净额",
-            "筹资活动产生的现金流量净额", "销售商品、提供劳务收到的现金",
-            "购建固定资产、无形资产和其他长期资产支付的现金",
-            "分配股利、利润或偿付利息支付的现金",
-        ]
-        return self._extract_statement(
-            "现金流量表", keys, "合并现金流量表", ["经营活动", "现金流量"]
-        )
+        return self._extract_statement("现金流量表")
+
+    def extract_financial_institution_data(self):
+        """Extract HKFRS bank/financial-institution line items when present."""
+        return self._extract_statement("金融企业指标")
+
+    @staticmethod
+    def _share_scale(record):
+        context = record["page_text"] + " " + str(record["data"][:3])
+        if re.search(
+            r"(?i)(?:million shares|shares\s+in\s+millions|"
+            r"number\s+of\s+shares\s*\(?\s*millions?\s*\)?|\(millions?\))",
+            context,
+        ):
+            return "million shares", 1_000_000, "high"
+        if re.search(
+            r"(?i)(?:thousand shares|shares\s+in\s+thousands|"
+            r"number\s+of\s+shares\s*\(?\s*thousands?\s*\)?|"
+            r"['’]000\s*shares|shares\s*['’]000|\(thousands?\))",
+            context,
+        ):
+            return "thousand shares", 1_000, "high"
+        return "shares", 1, "low"
+
+    def extract_share_data(self):
+        fields = FINANCIAL_FIELD_MAPPING["shares"]
+        data = {key: None for key in fields}
+        self.sources["股份口径"] = {}
+        for record in self.tables:
+            unit, scale, confidence = self._share_scale(record)
+            for row in record["data"]:
+                if not row or len(row) < 2:
+                    continue
+                row_text = " ".join(str(cell or "") for cell in row)
+                key = self._match_key(row_text, fields)
+                if key is None or data[key] is not None:
+                    continue
+                value = self._row_value(row)
+                if value is None:
+                    continue
+                data[key] = value * scale
+                self.sources["股份口径"][key] = {
+                    "page": record["page"],
+                    "source_unit": unit,
+                    "normalized_unit": "shares",
+                    "period_column": "首个可识别本期数，需复核表头",
+                    "confidence": confidence,
+                }
+
+            context = self._normalize(record["page_text"])
+            if "basicanddilutedearningspershare" in context:
+                for row in record["data"]:
+                    row_text = " ".join(str(cell or "") for cell in row)
+                    normalized_row = self._normalize(row_text)
+                    numbers = []
+                    for cell in row:
+                        numbers.extend(self._numbers_from_cell(cell))
+                    if numbers and numbers[0] == 1:
+                        numbers.pop(0)
+                    if normalized_row.startswith("basic") and len(numbers) >= 2:
+                        data["加权平均股份"] = numbers[1] * scale
+                        self.sources["股份口径"]["加权平均股份"] = {
+                            "page": record["page"],
+                            "source_unit": unit,
+                            "normalized_unit": "shares",
+                            "period_column": "EPS表本期加权平均股份，需复核表头",
+                            "confidence": confidence,
+                        }
+                    elif normalized_row.startswith("diluted") and len(numbers) >= 2:
+                        data["稀释加权平均股份"] = numbers[1] * scale
+                        self.sources["股份口径"]["稀释加权平均股份"] = {
+                            "page": record["page"],
+                            "source_unit": unit,
+                            "normalized_unit": "shares",
+                            "period_column": "EPS表本期稀释加权平均股份，需复核表头",
+                            "confidence": confidence,
+                        }
+
+            text = re.sub(r"\s+", " ", record["page_text"])
+            text_patterns = {
+                "加权平均股份": (
+                    r"weighted average number of ordinary shares"
+                    r"(?: in issue| outstanding)"
+                    r"(?:(?!diluted).){0,320}?"
+                    r"\((million shares|millions?|thousands?|['’]000 shares)\)"
+                    r"\s*([\d,]+)"
+                ),
+                "稀释加权平均股份": (
+                    r"weighted average number of ordinary shares"
+                    r"(?:(?!weighted average).){0,260}?"
+                    r"(?:diluted eps|diluted earnings per share)"
+                    r"\s*\((million shares|millions?|thousands?|['’]000 shares)\)"
+                    r"\s*([\d,]+)"
+                ),
+            }
+            for key, pattern in text_patterns.items():
+                if data[key] is not None:
+                    continue
+                match = re.search(pattern, text, re.IGNORECASE)
+                if not match:
+                    continue
+                unit_text = match.group(1).casefold()
+                if unit_text.startswith("million"):
+                    source_unit, text_scale = "million shares", 1_000_000
+                else:
+                    source_unit, text_scale = "thousand shares", 1_000
+                value = self._parse_number(match.group(2))
+                if value is None:
+                    continue
+                data[key] = value * text_scale
+                self.sources["股份口径"][key] = {
+                    "page": record["page"],
+                    "source_unit": source_unit,
+                    "normalized_unit": "shares",
+                    "period_column": "同页文本中的首个本期数，需复核表头",
+                    "confidence": "medium",
+                }
+
+            if "basicanddilutedearningspershare" in context:
+                eps_patterns = {
+                    "加权平均股份": r"\bbasic1?\s+([\d,]+)\s+([\d,]+)",
+                    "稀释加权平均股份": r"\bdiluted1?\s+([\d,]+)\s+([\d,]+)",
+                }
+                for key, pattern in eps_patterns.items():
+                    if data[key] is not None:
+                        continue
+                    match = re.search(pattern, text, re.IGNORECASE)
+                    if not match:
+                        continue
+                    value = self._parse_number(match.group(2))
+                    if value is None:
+                        continue
+                    data[key] = value * scale
+                    self.sources["股份口径"][key] = {
+                        "page": record["page"],
+                        "source_unit": unit,
+                        "normalized_unit": "shares",
+                        "period_column": "EPS表本期加权平均股份，需复核表头",
+                        "confidence": "medium",
+                    }
+        return data
     
     def extract_business_segments(self):
         """
@@ -285,16 +587,25 @@ class PDFReportExtractor:
         balance = self.extract_composite_balance_sheet()
         income = self.extract_composite_income_statement()
         cashflow = self.extract_composite_cash_flow()
+        financial_institution = self.extract_financial_institution_data()
+        shares = self.extract_share_data()
         segments = self.extract_business_segments()
         
         return {
             "资产负债表": balance,
             "利润表": income,
             "现金流量表": cashflow,
+            "金融企业指标": financial_institution,
+            "股份口径": shares,
             "业务分部": segments,
             "提取元数据": {
                 "source_file": self.filename,
                 "sources": self.sources,
+                "reporting_currencies": sorted(
+                    getattr(self, "detected_currencies", set())
+                ),
+                "amount_unit": "1e8 reporting currency",
+                "share_unit": "shares",
                 "warnings": self.warnings,
                 "status": "candidate_data_requires_manual_verification",
             },
@@ -312,7 +623,9 @@ def find_reports(reports_dir, stock_name=None):
         if stock_name and stock_name not in filename:
             continue
         
-        year_match = re.search(r"(\d{4})年", filename)
+        year_match = re.search(r"(20\d{2})(?:年|_annual_report)", filename, re.I)
+        if not year_match:
+            year_match = re.search(r"(20\d{2})", filename)
         year = int(year_match.group(1)) if year_match else None
         
         report_type = "年度"
@@ -398,6 +711,8 @@ def format_financial_data(raw_data):
         balance = data.get("资产负债表", {})
         income = data.get("利润表", {})
         cashflow = data.get("现金流量表", {})
+        financial_institution = data.get("金融企业指标", {})
+        shares = data.get("股份口径", {})
         
         def first_present(*values):
             return next((value for value in values if value is not None), None)
@@ -459,6 +774,10 @@ def format_financial_data(raw_data):
             "goodwill": balance.get("商誉"),
             "ebit": ebit,
             "interest_expense": abs(interest_expense) if interest_expense is not None else None,
+            "shares_in_issue": shares.get("期末已发行股份"),
+            "weighted_average_shares": shares.get("加权平均股份"),
+            "diluted_weighted_average_shares": shares.get("稀释加权平均股份"),
+            "financial_institution_metrics": financial_institution,
             "segments": data.get("业务分部", {"按产品": [], "按渠道": [], "按地区": []}),
             "extraction_metadata": data.get("提取元数据", {}),
         }

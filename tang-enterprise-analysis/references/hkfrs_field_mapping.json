@@ -1,0 +1,178 @@
+{
+  "version": 1,
+  "normalized_amount_unit": "1e8 reporting currency",
+  "statements": {
+    "资产负债表": {
+      "titles": [
+        "合并资产负债表",
+        "综合财务状况表",
+        "consolidated statement of financial position",
+        "consolidated balance sheet"
+      ],
+      "signatures": [
+        "资产总计",
+        "货币资金",
+        "total assets",
+        "cash and cash equivalents"
+      ],
+      "fields": {
+        "货币资金": [
+          "cash and cash equivalents",
+          "cash and bank balances",
+          "cash and balances at central banks"
+        ],
+        "应收账款": [
+          "trade receivables",
+          "trade and other receivables",
+          "accounts receivable"
+        ],
+        "应收票据": ["notes receivable", "bills receivable"],
+        "存货": ["inventories", "inventory"],
+        "流动资产合计": ["total current assets", "current assets"],
+        "资产总计": ["total assets"],
+        "短期借款": [
+          "short-term borrowings",
+          "short term borrowings",
+          "current borrowings"
+        ],
+        "长期借款": [
+          "long-term borrowings",
+          "long term borrowings",
+          "non-current borrowings"
+        ],
+        "流动负债合计": ["total current liabilities", "current liabilities"],
+        "负债合计": ["total liabilities"],
+        "所有者权益合计": ["total equity", "total shareholders' equity"],
+        "其他应收款": ["other receivables"],
+        "商誉": ["goodwill"],
+        "合同负债": ["contract liabilities", "deferred revenue"],
+        "股东权益合计": ["shareholders' equity", "shareholders’ equity"],
+        "归属于母公司股东权益合计": [
+          "equity attributable to equity holders of the company",
+          "equity attributable to owners of the company",
+          "equity attributable to shareholders of the company"
+        ]
+      }
+    },
+    "利润表": {
+      "titles": [
+        "合并利润表",
+        "综合收益表",
+        "consolidated income statement",
+        "consolidated statement of profit or loss",
+        "consolidated statement of comprehensive income"
+      ],
+      "signatures": [
+        "营业收入",
+        "营业利润",
+        "revenue",
+        "operating profit",
+        "profit before tax"
+      ],
+      "fields": {
+        "营业收入": ["revenue", "revenues", "total revenue"],
+        "营业成本": ["cost of revenues", "cost of revenue", "cost of sales"],
+        "毛利润": ["gross profit"],
+        "销售费用": ["selling and marketing expenses", "selling expenses"],
+        "管理费用": ["general and administrative expenses", "administrative expenses"],
+        "研发费用": ["research and development expenses", "research and development costs"],
+        "财务费用": ["finance costs", "finance expenses"],
+        "营业利润": ["operating profit", "profit from operations", "operating loss"],
+        "利润总额": ["profit before income tax", "profit before tax", "loss before tax"],
+        "净利润": ["profit for the year", "profit for the period", "net profit", "loss for the year"],
+        "归属于母公司所有者的净利润": [
+          "profit attributable to equity holders of the company",
+          "profit attributable to owners of the company",
+          "profit attributable to shareholders of the company",
+          "profit attributable to ordinary shareholders of the parent company",
+          "equity holders of the company",
+          "ordinary shareholders of the parent company"
+        ],
+        "扣除非经常性损益后的净利润": [],
+        "利息费用": ["interest expense", "interest expenses"]
+      }
+    },
+    "现金流量表": {
+      "titles": [
+        "合并现金流量表",
+        "综合现金流量表",
+        "consolidated statement of cash flows",
+        "consolidated cash flow statement"
+      ],
+      "signatures": [
+        "经营活动",
+        "现金流量",
+        "operating activities",
+        "cash flows"
+      ],
+      "fields": {
+        "经营活动产生的现金流量净额": [
+          "net cash generated from operating activities",
+          "net cash flows generated from operating activities",
+          "net cash from operating activities",
+          "net cash used in operating activities"
+        ],
+        "投资活动产生的现金流量净额": [
+          "net cash generated from investing activities",
+          "net cash flows generated from investing activities",
+          "net cash used in investing activities",
+          "net cash from investing activities"
+        ],
+        "筹资活动产生的现金流量净额": [
+          "net cash generated from financing activities",
+          "net cash flows generated from financing activities",
+          "net cash used in financing activities",
+          "net cash from financing activities"
+        ],
+        "销售商品、提供劳务收到的现金": ["cash received from customers"],
+        "购建固定资产、无形资产和其他长期资产支付的现金": [
+          "payments for property plant and equipment",
+          "purchase of property plant and equipment",
+          "purchases of property and equipment",
+          "purchase of intangible assets",
+          "purchase of prepayments for property plant and equipment",
+          "purchases and prepayments of property plant and equipment and intangible assets"
+        ],
+        "分配股利、利润或偿付利息支付的现金": [
+          "dividends paid",
+          "interest paid"
+        ]
+      }
+    },
+    "金融企业指标": {
+      "titles": [],
+      "signatures": [],
+      "fields": {
+        "净利息收入": ["net interest income"],
+        "预期信用损失": [
+          "change in expected credit losses and other credit impairment charges",
+          "expected credit losses and other credit impairment charges",
+          "credit impairment charges"
+        ],
+        "客户贷款": [
+          "loans and advances to customers",
+          "customer loans and advances"
+        ],
+        "客户存款": ["customer accounts", "deposits by customers", "customer deposits"]
+      }
+    }
+  },
+  "shares": {
+    "期末已发行股份": [
+      "shares in issue",
+      "number of issued shares",
+      "number of shares in issue",
+      "issued ordinary shares"
+    ],
+    "加权平均股份": [
+      "weighted average number of ordinary shares in issue",
+      "weighted average number of shares in issue"
+    ],
+    "稀释加权平均股份": [
+      "weighted average number of ordinary shares for diluted earnings per share",
+      "weighted average number of ordinary shares used as the denominator in calculating diluted earnings per share",
+      "diluted weighted average number of ordinary shares",
+      "weighted average number of shares for diluted earnings per share"
+    ]
+  }
+}
