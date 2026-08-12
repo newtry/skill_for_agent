@@ -1,0 +1,6 @@
+interface:
+  display_name: "观一研发交付工作流"
+  short_description: "编排需求分析、DDD方案、代码实现、测试验证与受控交付"
+  default_prompt: "使用 $dev-workflow 分析当前需求，按项目规范完成方案、实现和验证。"
+policy:
+  allow_implicit_invocation: true
