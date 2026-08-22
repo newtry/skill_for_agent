@@ -1,0 +1,4 @@
+interface:
+  display_name: "需求与设计测试用例生成"
+  short_description: "从需求文档与技术设计生成可追踪、可执行、可评审的完整测试用例清单"
+  default_prompt: "使用 $derive-test-cases 根据需求文档和技术设计梳理测试用例，并标出覆盖关系与需求缺口。"
