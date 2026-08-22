@@ -58,6 +58,8 @@
 
 这一辑用故障、数据和发布案例回答：AI 如何面对状态、幂等、数据粒度和运行环境，而不把“代码能运行”误认为交付完成。
 
+可以按三组理解这些案例：故障诊断（6-7）、状态与数据正确性（8、10-14）、迁移与发布（9、15）。它们不要求严格按编号连续阅读。
+
 6. [《从一条错误日志到完整调用链：我是如何用 AI 排查线上问题的》](06-from-error-log-to-call-chain.md)
 7. [《一个流水号溢出问题，暴露了 AI 处理边界条件的能力》](07-sequence-number-overflow.md)
 8. [《批量导入为什么最能检验 AI 的工程能力》](08-batch-import-tests-ai-engineering.md)
@@ -86,6 +88,8 @@
 ## 第四辑：构建可靠的业务智能体
 
 这一辑从研发助手转向业务产品，讨论自然语言如何经过路由、工具、权限、结构化输出和评测，最终进入真实业务流程。
+
+内部主线是：业务语言（27）→ 路由（26）→ 查询工具（33）→ 权限与安全（29、32）→ 流程与输出（28、30）→ 评测与上线（31、34）。第 25 篇先提供整体架构地图。
 
 25. [《AI Agent 不能只靠提示词：路由、工具、安全和评测》](25-reliable-agent-routing-tools-security-evaluation.md)
 26. [《不是所有请求都需要 ReAct：一次 Agent 路由架构的实践》](26-not-every-request-needs-react.md)
@@ -122,13 +126,15 @@
 47. [《真实项目中，AI 最容易犯的十类错误》](47-common-ai-engineering-mistakes.md)
 48. [《不要只看 AI 写了多少代码，要看它完成了多少验证》](48-verify-more-than-code-volume.md)
 49. [《如何划分 AI 的自动执行边界与人工确认边界》](49-ai-execution-and-human-confirmation-boundaries.md)
-50. [《从“让 AI 写代码”到“让 AI 对交付结果负责”》](50-from-code-generation-to-delivery-responsibility.md)
+50. [《从“让 AI 写代码”到“要求 AI 为交付结果提供证据”》](50-from-code-generation-to-delivery-responsibility.md)
 51. [《用了几个月 Codex 后，我对程序员角色变化的理解》](51-programmer-role-after-codex.md)
 52. [《AI 没有取代工程能力，反而提高了工程能力的门槛》](52-ai-raises-engineering-bar.md)
 
 ## 第七辑：让 AI 系统持续演进
 
 这一辑来自后续项目的新问题：第一版交付之后，协议如何退出旧链路，多个 AI 如何并行，测试和共享环境如何隔离，以及技术完成怎样连接业务效果。
+
+其中第 53-57 篇讨论能力、协议和业务结果如何演进，第 58-60 篇讨论并行开发、测试资源和共享数据库的环境治理。
 
 53. [《规则优先，LLM 兜底：意图识别为什么需要统一注册表》](53-rules-first-llm-fallback-intent-registry.md)
 54. [《停止执行不等于任务完成：Agent 如何判断用户目标真的达成》](54-agent-completion-policy.md)
