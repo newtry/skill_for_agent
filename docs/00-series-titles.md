@@ -108,13 +108,15 @@
 
 ## 第五辑：从个人助手到自动化协作
 
-这一辑关注多会话、多工具和任务自动化中的协作问题：如何保存现场、隔离写入、回写证据，并让重复经验进入团队资产。
+这一辑关注 AI 从个人会话进入持续协作后，任务、现场和知识怎样保持可控。前半段先定义任务怎样被唯一认领，再把发现、执行、验证和回写连接成可恢复状态机，最后通过人工评审完成责任移交（35-37）；中间先解决单个任务跨会话时怎样恢复现场，再扩展到多个工具的写入隔离与证据交接，并统一它们读取的权威规则（38-40）；最后把会话事件提炼为工作资产，路由到文档、测试、Skill 和任务板，并逐步形成团队可执行、可度量的研发流程（41-44）。
+
+十篇文章形成一条学习闭环：任务进入（35）→ 自动化状态机（36）→ 责任移交（37）→ 跨会话恢复（38）→ 多工具协作（39）→ 共享规则（40）→ 过程资产（41）→ 知识生命周期（42）→ Skill 能力化（43）→ 团队流程（44）。
 
 35. [《任务板接入 Codex：让 AI 从等待提问走向主动领取任务》](35-taskboard-codex-claim-task.md)
-36. [《AI 自动完成任务后，为什么仍然需要“待评审”状态》](36-ai-completed-needs-review.md)
-37. [《从认领、实现到回写：AI 任务自动化的完整闭环》](37-ai-task-automation-loop.md)
-38. [《Codex 和 Claude Code 如何协作，而不是互相覆盖》](38-codex-claude-code-collaboration.md)
-39. [《跨会话继续开发：如何解决 AI 换会话就失忆的问题》](39-cross-session-development-memory.md)
+36. [《从认领、实现到回写：AI 任务自动化的完整闭环》](36-ai-task-automation-loop.md)
+37. [《AI 自动完成任务后，为什么仍然需要“待评审”状态》](37-ai-completed-needs-review.md)
+38. [《跨会话继续开发：如何解决 AI 换会话就失忆的问题》](38-cross-session-development-memory.md)
+39. [《Codex 和 Claude Code 如何协作，而不是互相覆盖》](39-codex-claude-code-collaboration.md)
 40. [《如何让多个 AI 工具共享同一套项目规则和研发记忆》](40-shared-ai-project-rules.md)
 41. [《从会话记录自动生成工作日报：把 AI 使用过程变成知识资产》](41-session-records-to-work-assets.md)
 42. [《从一次性对话到持续知识沉淀：文档、记忆、Skill 与任务板》](42-conversation-to-continuous-knowledge.md)
