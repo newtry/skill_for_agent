@@ -91,19 +91,19 @@
 
 ## 第四辑：构建可靠的业务智能体
 
-这一辑从研发助手转向业务产品，讨论自然语言如何经过路由、工具、权限、结构化输出和评测，最终进入真实业务流程。
+这一辑从研发助手转向业务产品，讨论自然语言如何经过业务语义、路由、安全、权限、工具、流程、输出和评测，最终进入真实业务环境。
 
-内部主线是：业务语言（27）→ 路由（26）→ 查询工具（33）→ 权限与安全（29、32）→ 流程与输出（28、30）→ 评测与上线（31、34）。第 25 篇先提供整体架构地图。
+十篇文章形成一条 Agent 产品生命周期：先建立架构地图，再把业务语言翻译成可路由的意图，随后落实纵深安全与运行时权限；在此基础上开放受控查询和业务动作，最后用结构化输出、回放评测和上线门禁把能力交付到真实环境。
 
 25. [《AI Agent 不能只靠提示词：路由、工具、安全和评测》](25-reliable-agent-routing-tools-security-evaluation.md)
-26. [《不是所有请求都需要 ReAct：一次 Agent 路由架构的实践》](26-not-every-request-needs-react.md)
-27. [《让 AI 听懂行业黑话：服装批发业务术语库的建设实践》](27-domain-jargon-and-agent-retrieval.md)
-28. [《为什么业务 Agent 不能只会回答，还必须能够推动业务流程》](28-agent-must-drive-business-process.md)
-29. [《如何防止 AI 泄露思考过程、敏感数据和内部字段》](29-agent-security-and-sensitive-data.md)
-30. [《从 Markdown 到业务卡片：让 Agent 输出真正可用的结果》](30-agent-cards-and-usable-output.md)
-31. [《模型觉得正确还不够：如何构建可回放、可评测的 Agent》](31-agent-replayable-evaluation.md)
-32. [《租户、账套与权限：业务 Agent 必须守住的数据边界》](32-agent-tenant-ledger-permission-boundaries.md)
-33. [《从自由 SQL 到受控查询：如何平衡 Agent 能力与数据安全》](33-controlled-sql-for-agent.md)
+26. [《让 AI 听懂行业黑话：服装批发业务术语库的建设实践》](26-domain-jargon-and-agent-retrieval.md)
+27. [《不是所有请求都需要 ReAct：一次 Agent 路由架构的实践》](27-not-every-request-needs-react.md)
+28. [《如何防止 AI 泄露思考过程、敏感数据和内部字段》](28-agent-security-and-sensitive-data.md)
+29. [《租户、账套与权限：业务 Agent 必须守住的数据边界》](29-agent-tenant-ledger-permission-boundaries.md)
+30. [《从自由 SQL 到受控查询：如何平衡 Agent 能力与数据安全》](30-controlled-sql-for-agent.md)
+31. [《为什么业务 Agent 不能只会回答，还必须能够推动业务流程》](31-agent-must-drive-business-process.md)
+32. [《从 Markdown 到业务卡片：让 Agent 输出真正可用的结果》](32-agent-cards-and-usable-output.md)
+33. [《模型觉得正确还不够：如何构建可回放、可评测的 Agent》](33-agent-replayable-evaluation.md)
 34. [《智能体上线前要验证什么：一次真实项目的发布检查实践》](34-agent-release-checklist.md)
 
 ## 第五辑：从个人助手到自动化协作
