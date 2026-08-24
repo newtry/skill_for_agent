@@ -58,19 +58,19 @@
 
 ## 第二辑：让 AI 参与真实项目交付
 
-这一辑用故障、数据和发布案例回答：AI 如何面对状态、幂等、数据粒度和运行环境，而不把“代码能运行”误认为交付完成。
+这一辑用故障、数据、状态和发布案例回答：当 AI 真正进入交付，它怎样从局部代码继续推演业务边界、失败恢复、重复执行和运行环境，而不把“代码能运行”误认为系统已经正确。
 
-可以按三组理解这些案例：故障诊断（6-7）、状态与数据正确性（8、10-14）、迁移与发布（9、15）。它们不要求严格按编号连续阅读。
+十篇文章形成四个连续阶段：先从故障、边界值和批量任务中发现工程问题（6-8）；再定义 ERP 的业务边界与数据语义（9-10）；随后处理支付、积分和多实例任务中的状态收敛（11-13）；最后通过数据库迁移与环境检查完成发布（14-15）。问题从一次请求开始，最终扩展到整个系统能否安全进入目标环境。
 
 6. [《从一条错误日志到完整调用链：我是如何用 AI 排查线上问题的》](06-from-error-log-to-call-chain.md)
 7. [《一个流水号溢出问题，暴露了 AI 处理边界条件的能力》](07-sequence-number-overflow.md)
 8. [《批量导入为什么最能检验 AI 的工程能力》](08-batch-import-tests-ai-engineering.md)
-9. [《用 AI 对比数据库结构：如何辅助发布而不盲目执行 DDL》](09-database-diff-before-release.md)
-10. [《复杂 ERP 需求不能只看代码：如何让 AI 理解业务边界》](10-understanding-erp-boundaries.md)
+9. [《复杂 ERP 需求不能只看代码：如何让 AI 理解业务边界》](09-understanding-erp-boundaries.md)
+10. [《接口正确不等于数据正确：一次账套维度聚合问题的启示》](10-api-correct-data-wrong-ledger-dimension.md)
 11. [《用 AI 辅助支付系统开发：哪些工作可以交给它，哪些不能》](11-ai-assisted-payment-development.md)
 12. [《积分冻结、确认与释放：如何让 AI 理解完整的业务状态》](12-points-freeze-confirm-release.md)
-13. [《接口正确不等于数据正确：一次账套维度聚合问题的启示》](13-api-correct-data-wrong-ledger-dimension.md)
-14. [《从单机定时任务到多实例运行：让 AI 帮助设计幂等机制》](14-scheduled-job-multi-instance-idempotency.md)
+13. [《从单机定时任务到多实例运行：让 AI 帮助设计幂等机制》](13-scheduled-job-multi-instance-idempotency.md)
+14. [《用 AI 对比数据库结构：如何辅助发布而不盲目执行 DDL》](14-database-diff-before-release.md)
 15. [《发布前的最后一公里：让 AI 检查配置、日志、JVM 和运行环境》](15-release-last-mile.md)
 
 ## 第三辑：把 AI 纳入工程流程
