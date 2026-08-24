@@ -36,6 +36,7 @@ except Exception:  # pragma: no cover - handled at runtime with a clear error
 TOKEN_URL = "https://api.weixin.qq.com/cgi-bin/token"
 ADD_MATERIAL_URL = "https://api.weixin.qq.com/cgi-bin/material/add_material"
 ADD_DRAFT_URL = "https://api.weixin.qq.com/cgi-bin/draft/add"
+UPDATE_DRAFT_URL = "https://api.weixin.qq.com/cgi-bin/draft/update"
 COVER_WIDTH = 900
 COVER_HEIGHT = 383
 
@@ -264,10 +265,94 @@ def markdown_to_html(markdown_text: str) -> str:
         return fallback_markdown_to_html(markdown_text)
 
 
+def prepare_markdown_for_wechat(markdown_text: str) -> str:
+    """Remove metadata that the Official Account editor renders separately."""
+    lines = markdown_text.splitlines()
+    prepared: List[str] = []
+    title_removed = False
+
+    for line in lines:
+        stripped = line.strip()
+        if not title_removed and re.match(r"^#\s+\S", stripped):
+            title_removed = True
+            continue
+        if re.match(r"^>\s*系列导航：\[[^]]+\]\([^)]+\.md(?:#[^)]*)?\)\s*$", stripped):
+            continue
+        prepared.append(line)
+
+    return "\n".join(prepared).strip()
+
+
+def style_wechat_article_html(body_html: str) -> str:
+    """Apply inline styles that survive pasting into the WeChat editor."""
+    replacements = {
+        "p": (
+            '<p style="margin:0 0 20px;font-size:16px;line-height:1.9;'
+            'color:#263238;text-align:justify;">'
+        ),
+        "h1": (
+            '<h1 style="margin:34px 0 18px;font-size:23px;line-height:1.45;'
+            'font-weight:700;color:#173f3c;">'
+        ),
+        "h2": (
+            '<h2 style="margin:38px 0 18px;padding-left:12px;border-left:4px solid #176b65;'
+            'font-size:20px;line-height:1.5;font-weight:700;color:#173f3c;">'
+        ),
+        "h3": (
+            '<h3 style="margin:30px 0 14px;font-size:18px;line-height:1.55;'
+            'font-weight:700;color:#263238;">'
+        ),
+        "ul": '<ul style="margin:0 0 22px;padding-left:1.4em;color:#263238;">',
+        "ol": '<ol style="margin:0 0 22px;padding-left:1.4em;color:#263238;">',
+        "li": '<li style="margin:8px 0;font-size:16px;line-height:1.8;">',
+        "blockquote": (
+            '<blockquote style="margin:24px 0;padding:14px 18px;border-left:4px solid #d35b3f;'
+            'background:#f5f7f5;color:#465457;">'
+        ),
+        "pre": (
+            '<pre style="margin:22px 0;padding:16px 18px;border:1px solid #dce5e2;'
+            'border-radius:6px;background:#f5f7f6;white-space:pre-wrap;word-break:break-word;'
+            'overflow-wrap:anywhere;font-size:13px;line-height:1.75;color:#263238;">'
+        ),
+        "table": (
+            '<table style="margin:22px 0;border-collapse:collapse;width:100%;'
+            'font-size:14px;line-height:1.7;color:#263238;">'
+        ),
+        "th": (
+            '<th style="border:1px solid #d8e2df;padding:8px;background:#edf3f1;'
+            'font-weight:700;text-align:left;">'
+        ),
+        "td": '<td style="border:1px solid #d8e2df;padding:8px;vertical-align:top;">',
+    }
+    styled = body_html
+    for tag, replacement in replacements.items():
+        styled = re.sub(rf"<{tag}(?:\s[^>]*)?>", replacement, styled, flags=re.IGNORECASE)
+
+    styled = re.sub(
+        r"<a(?:\s[^>]*)?href=([\"'])(https?://[^\"']+)\1(?:\s[^>]*)?>",
+        r'<a href="\2" style="color:#176b65;text-decoration:underline;">',
+        styled,
+        flags=re.IGNORECASE,
+    )
+    styled = re.sub(
+        r"<code(?:\s[^>]*)?>",
+        '<code style="font-family:Consolas,Menlo,monospace;font-size:0.92em;color:#9c3f2d;">',
+        styled,
+        flags=re.IGNORECASE,
+    )
+    styled = re.sub(
+        r"<strong(?:\s[^>]*)?>",
+        '<strong style="font-weight:700;color:#173f3c;">',
+        styled,
+        flags=re.IGNORECASE,
+    )
+    return styled
+
+
 def wrap_wechat_article_html(body_html: str) -> str:
     return f"""
-<section style="font-size:16px;line-height:1.85;color:#222;">
-{body_html}
+<section style="font-size:16px;line-height:1.9;color:#263238;letter-spacing:0;">
+{style_wechat_article_html(body_html)}
 </section>
 """.strip()
 
@@ -482,6 +567,35 @@ def create_draft(
     return media_id
 
 
+def update_draft(
+    access_token: str,
+    media_id: str,
+    title: str,
+    author: str,
+    digest: str,
+    content_html: str,
+    thumb_media_id: str,
+    source_url: str,
+    need_open_comment: int,
+    only_fans_can_comment: int,
+) -> None:
+    payload = {
+        "media_id": media_id,
+        "index": 0,
+        "articles": {
+            "title": title,
+            "author": author,
+            "digest": digest,
+            "content": content_html,
+            "content_source_url": source_url,
+            "thumb_media_id": thumb_media_id,
+            "need_open_comment": need_open_comment,
+            "only_fans_can_comment": only_fans_can_comment,
+        },
+    }
+    wx_post_json(UPDATE_DRAFT_URL, {"access_token": access_token}, payload)
+
+
 def build_parser() -> argparse.ArgumentParser:
     default_article = (
         Path(__file__).resolve().parents[2]
@@ -503,6 +617,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Disable automatic cover generation when no cover image or thumb media id is provided.",
     )
     parser.add_argument("--thumb-media-id", help="Existing cover thumb media_id.")
+    parser.add_argument("--draft-media-id", help="Update article index 0 in an existing draft.")
     parser.add_argument("--open-comment", action="store_true", help="Enable comments.")
     parser.add_argument("--fans-only-comment", action="store_true", help="Only fans can comment.")
     parser.add_argument("--dry-run", action="store_true", help="Render HTML and show metadata without uploading.")
@@ -524,7 +639,7 @@ def main() -> int:
 
     markdown_text = article_path.read_text(encoding="utf-8")
     title, digest = extract_title_and_digest(markdown_text, args.title, args.digest)
-    body_html = markdown_to_html(markdown_text)
+    body_html = markdown_to_html(prepare_markdown_for_wechat(markdown_text))
     content_html = wrap_wechat_article_html(body_html)
     env_thumb_media_id = os.environ.get("WECHAT_THUMB_MEDIA_ID", "").strip()
     thumb_media_id = args.thumb_media_id or (env_thumb_media_id if args.no_auto_cover else "")
@@ -560,18 +675,23 @@ def main() -> int:
     if not thumb_media_id:
         raise WeChatError("Provide --cover-image, --thumb-media-id, WECHAT_THUMB_MEDIA_ID in .env, or enable auto cover generation")
 
-    media_id = create_draft(
-        access_token=access_token,
-        title=title,
-        author=args.author,
-        digest=digest,
-        content_html=content_html,
-        thumb_media_id=thumb_media_id,
-        source_url=args.source_url,
-        need_open_comment=1 if args.open_comment else 0,
-        only_fans_can_comment=1 if args.fans_only_comment else 0,
-    )
-    print(f"Draft created. media_id: {media_id}")
+    article_args = {
+        "access_token": access_token,
+        "title": title,
+        "author": args.author,
+        "digest": digest,
+        "content_html": content_html,
+        "thumb_media_id": thumb_media_id,
+        "source_url": args.source_url,
+        "need_open_comment": 1 if args.open_comment else 0,
+        "only_fans_can_comment": 1 if args.fans_only_comment else 0,
+    }
+    if args.draft_media_id:
+        update_draft(media_id=args.draft_media_id, **article_args)
+        print(f"Draft updated. media_id: {args.draft_media_id}")
+    else:
+        media_id = create_draft(**article_args)
+        print(f"Draft created. media_id: {media_id}")
     return 0
 
 
