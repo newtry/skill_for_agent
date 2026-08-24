@@ -35,4 +35,4 @@ AI 很适合对多个代码库做全局审计：搜索旧字段、协议版本�
 
 协议演进真正考验的不是生成 V2 的速度，而是管理完整生命周期的能力。新链路上线只是中点，旧链路被安全删除，迁移才算结束。
 
-> 同一案例的其他视角：[字段语义](09-understanding-erp-boundaries.md)、[跨仓库追溯](19-requirements-tests-code-traceability.md)、[迁移方案评审](22-reviewing-ai-technical-proposals.md)和[实现差距审计](56-ai-audits-technical-design-implementation-gap.md)。
+> 同一案例的其他视角：[字段语义](09-understanding-erp-boundaries.md)、[跨仓库追溯](18-requirements-tests-code-traceability.md)、[迁移方案评审](19-reviewing-ai-technical-proposals.md)和[实现差距审计](56-ai-audits-technical-design-implementation-gap.md)。

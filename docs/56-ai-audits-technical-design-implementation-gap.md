@@ -31,4 +31,4 @@
 
 技术方案的价值不只是在开工前指导实现，也在开发过程中持续暴露偏差。让 AI 定期回答“哪些承诺还没有证据”，比在项目结束时重新写一份看起来完整的总结更有用。
 
-> 关联阅读：[方案进入实现前怎样评审](22-reviewing-ai-technical-proposals.md)；[V2 迁移为何必须清理旧链路](55-protocol-v2-legacy-cleanup.md)。
+> 关联阅读：[方案进入实现前怎样评审](19-reviewing-ai-technical-proposals.md)；[V2 迁移为何必须清理旧链路](55-protocol-v2-legacy-cleanup.md)。

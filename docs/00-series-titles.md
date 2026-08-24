@@ -75,16 +75,18 @@
 
 ## 第三辑：把 AI 纳入工程流程
 
-这一辑把个人经验变成可执行流程，重点讨论需求追溯、方案评审、测试证据、历史现场保护和完成判定。
+这一辑把个人经验变成一条可执行、可追溯、可接管的研发流程：先定义流程和规则载体，再把需求承诺连接到方案与测试，随后在真实工作区中实施、审查和验证，最后按阶段门禁判断是否完成。
+
+九篇文章形成一条研发生命周期：流程总图（16）→ 规则与知识载体（17）→ 需求追溯（18）→ 方案评审（19）→ 风险驱动测试（20）→ 历史现场保护（21）→ 业务代码审查（22）→ 验收验证（23）→ 完成判定（24）。
 
 16. [《从 PRD 到代码：我最终固定下来的 AI 研发流程》](16-from-prd-to-code.md)
 17. [《AGENTS.md、工作流文档和 Skill，到底应该怎么分工》](17-agents-workflow-and-skills.md)
-18. [《让 AI 自己写测试：测试通过不等于风险已经被覆盖》](18-ai-writes-tests.md)
-19. [《如何让需求、验收条件、测试用例和代码实现相互追溯》](19-requirements-tests-code-traceability.md)
-20. [《AI 修改了代码以后，我是如何验证它真的完成了需求的》](20-how-to-verify-ai-changes.md)
+18. [《如何让需求、验收条件、测试用例和代码实现相互追溯》](18-requirements-tests-code-traceability.md)
+19. [《AI 生成的技术方案如何评审：从“看起来合理”到“可以落地”》](19-reviewing-ai-technical-proposals.md)
+20. [《让 AI 自己写测试：测试通过不等于风险已经被覆盖》](20-ai-writes-tests.md)
 21. [《如何让 AI 接手一个存在大量历史改动的真实代码库》](21-ai-takes-over-dirty-codebase.md)
-22. [《AI 生成的技术方案如何评审：从“看起来合理”到“可以落地”》](22-reviewing-ai-technical-proposals.md)
-23. [《代码审查不只是找语法错误：如何让 AI 检查业务回归风险》](23-ai-code-review-business-regression.md)
+22. [《代码审查不只是找语法错误：如何让 AI 检查业务回归风险》](22-ai-code-review-business-regression.md)
+23. [《AI 修改了代码以后，我是如何验证它真的完成了需求的》](23-how-to-verify-ai-changes.md)
 24. [《从分析、实现到验证：如何防止 AI 在任务中途宣布完成》](24-analysis-implementation-verification-loop.md)
 
 ## 第四辑：构建可靠的业务智能体
