@@ -127,4 +127,4 @@ AI 生成方案的价值，是快速展开候选设计；评审的价值，是�
 >
 > 下一篇：[让 AI 自己写测试：测试通过不等于风险已经被覆盖](20-ai-writes-tests.md)
 >
-> 延伸阅读：[技术方案写完以后：如何用 AI 持续审计“还有哪些没有实现”](56-ai-audits-technical-design-implementation-gap.md)
+> 延伸阅读：[技术方案写完以后：如何用 AI 持续审计“还有哪些没有实现”](55-ai-audits-technical-design-implementation-gap.md)

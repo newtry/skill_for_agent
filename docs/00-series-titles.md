@@ -140,14 +140,14 @@
 
 ## 第七辑：让 AI 系统持续演进
 
-这一辑来自后续项目的新问题：第一版交付之后，协议如何退出旧链路，多个 AI 如何并行，测试和共享环境如何隔离，以及技术完成怎样连接业务效果。
+这一辑讨论第一版系统交付以后怎样持续保持正确：先统一能力语义和完成标准，再让设计承诺、实际实现与协议生命周期持续对齐，并把技术完成连接到可解释的业务结果；最后处理多个 AI 并行写入、测试外部副作用和共享数据库约束，让演进速度不会破坏共同环境。
 
-其中第 53-57 篇讨论能力、协议和业务结果如何演进，第 58-60 篇讨论并行开发、测试资源和共享数据库的环境治理。
+八篇文章形成两条相接的演进链。前五篇从能力定义走向价值证明：意图注册表（53）→ 用户目标完成策略（54）→ 设计实现差距审计（55）→ 协议旧链路退出（56）→ 业务结果归因（57）。后三篇逐步扩大隔离范围：代码与工作树（58）→ 测试进程与外部资源（59）→ 共享数据库与团队发布门禁（60）。
 
 53. [《规则优先，LLM 兜底：意图识别为什么需要统一注册表》](53-rules-first-llm-fallback-intent-registry.md)
 54. [《停止执行不等于任务完成：Agent 如何判断用户目标真的达成》](54-agent-completion-policy.md)
-55. [《协议升级最难的不是切到 V2，而是安全删除旧链路》](55-protocol-v2-legacy-cleanup.md)
-56. [《技术方案写完以后：如何用 AI 持续审计“还有哪些没有实现”》](56-ai-audits-technical-design-implementation-gap.md)
+55. [《技术方案写完以后：如何用 AI 持续审计“还有哪些没有实现”》](55-ai-audits-technical-design-implementation-gap.md)
+56. [《协议升级最难的不是切到 V2，而是安全删除旧链路》](56-protocol-v2-legacy-cleanup.md)
 57. [《Agent 如何从任务完成走向业务结果：曝光、反馈与净成交归因》](57-agent-business-outcome-attribution.md)
 58. [《AI 并行开发为什么需要 Git Worktree 和写入隔离》](58-parallel-ai-development-worktree-isolation.md)
 59. [《测试为什么真的上传了 OSS：AI 开发中的环境污染与副作用隔离》](59-test-environment-pollution-and-side-effects.md)

@@ -111,4 +111,4 @@ AI 很适合跨文件搜索，但不能仅凭名称自动建立关系。一个�
 >
 > 下一篇：[AI 生成的技术方案如何评审：从“看起来合理”到“可以落地”](19-reviewing-ai-technical-proposals.md)
 >
-> 延伸案例：[协议升级最难的不是切到 V2，而是安全删除旧链路](55-protocol-v2-legacy-cleanup.md)
+> 延伸案例：[协议升级最难的不是切到 V2，而是安全删除旧链路](56-protocol-v2-legacy-cleanup.md)
