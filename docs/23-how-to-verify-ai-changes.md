@@ -119,4 +119,4 @@ Maven Profile 跳过测试、测试类没有被匹配、容器未启动、外部
 >
 > 下一篇：[从分析、实现到验证：如何防止 AI 在任务中途宣布完成](24-analysis-implementation-verification-loop.md)
 >
-> 延伸阅读：[不要只看 AI 写了多少代码，要看它完成了多少验证](48-verify-more-than-code-volume.md)
+> 延伸阅读：[不要只看 AI 写了多少代码，要看它完成了多少验证](49-verify-more-than-code-volume.md)

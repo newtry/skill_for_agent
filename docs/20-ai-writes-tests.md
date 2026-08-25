@@ -110,4 +110,4 @@ AI 写测试的价值不是更快制造绿色，而是更快把业务风险转�
 >
 > 下一篇：[如何让 AI 接手一个存在大量历史改动的真实代码库](21-ai-takes-over-dirty-codebase.md)
 >
-> 延伸阅读：[不要只看 AI 写了多少代码，要看它完成了多少验证](48-verify-more-than-code-volume.md)
+> 延伸阅读：[不要只看 AI 写了多少代码，要看它完成了多少验证](49-verify-more-than-code-volume.md)

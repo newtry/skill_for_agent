@@ -125,13 +125,15 @@
 
 ## 第六辑：阶段复盘与责任边界
 
-这一辑不是全系列终点，而是对前五辑的阶段性复盘：哪些工作适合自动化，责任怎样划分，AI 又如何改变工程能力的评价标准。
+这一辑不是全系列终点，而是对前五辑的阶段性复盘：先区分 AI 的能力与人的责任，拆解提示词迷思和高频错误；再把风险转成自动执行边界与验证指标，最终收束到交付责任、程序员角色和工程能力门槛。
+
+八篇文章形成一条判断升级路径：能力与责任（45）→ 提示词之外的工程准备（46）→ 错误模式（47）→ 执行与确认边界（48）→ 验证度量（49）→ 交付证据责任（50）→ 程序员角色（51）→ 工程能力门槛（52）。
 
 45. [《AI 最擅长做什么，最不适合替人决定什么》](45-ai-strengths-and-human-decisions.md)
 46. [《为什么提示词技巧不是 AI 编程的核心竞争力》](46-prompting-is-not-core-competence.md)
 47. [《真实项目中，AI 最容易犯的十类错误》](47-common-ai-engineering-mistakes.md)
-48. [《不要只看 AI 写了多少代码，要看它完成了多少验证》](48-verify-more-than-code-volume.md)
-49. [《如何划分 AI 的自动执行边界与人工确认边界》](49-ai-execution-and-human-confirmation-boundaries.md)
+48. [《如何划分 AI 的自动执行边界与人工确认边界》](48-ai-execution-and-human-confirmation-boundaries.md)
+49. [《不要只看 AI 写了多少代码，要看它完成了多少验证》](49-verify-more-than-code-volume.md)
 50. [《从“让 AI 写代码”到“要求 AI 为交付结果提供证据”》](50-from-code-generation-to-delivery-responsibility.md)
 51. [《用了几个月 Codex 后，我对程序员角色变化的理解》](51-programmer-role-after-codex.md)
 52. [《AI 没有取代工程能力，反而提高了工程能力的门槛》](52-ai-raises-engineering-bar.md)
